@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " BR",
+    " SQ",
+    "P  "
+  ],
+  "key": {
+    "B": {
+      "item": "create:brass_sheet"
+    },
+    "R": {
+      "item": "minecraft:redstone_torch"
+    },
+    "S": {
+      "item": "create:shaft"
+    },
+    "Q": {
+      "item": "create:rose_quartz"
+    },
+    "P": {
+      "item": "create:precision_mechanism"
+    }
+  },
+  "result": {
+    "id": "create_stressbound:kinetic_binder",
+    "count": 1
+  }
+}

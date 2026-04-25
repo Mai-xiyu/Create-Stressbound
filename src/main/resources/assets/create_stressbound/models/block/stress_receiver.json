@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "create_stressbound:block/stress_receiver_side",
+    "down": "create_stressbound:block/stress_receiver_side",
+    "up": "create_stressbound:block/stress_receiver_top",
+    "north": "create_stressbound:block/stress_receiver_front",
+    "south": "create_stressbound:block/stress_receiver_side",
+    "west": "create_stressbound:block/stress_receiver_side",
+    "east": "create_stressbound:block/stress_receiver_side"
+  }
+}

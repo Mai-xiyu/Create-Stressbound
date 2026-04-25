@@ -1,0 +1,23 @@
+# Gradle
+.gradle/
+build/
+out/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Local runtime files
+run/
+logs/
+crash-reports/
+*.log
+
+# Local notes and scratch files
+a.md
+a.log
+
+# OS
+Thumbs.db
+.DS_Store
