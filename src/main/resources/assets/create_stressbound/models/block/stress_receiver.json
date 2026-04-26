@@ -1,12 +1,38 @@
 {
-  "parent": "minecraft:block/cube",
+  "parent": "minecraft:block/block",
   "textures": {
     "particle": "create_stressbound:block/stress_receiver_side",
-    "down": "create_stressbound:block/stress_receiver_side",
-    "up": "create_stressbound:block/stress_receiver_top",
-    "north": "create_stressbound:block/stress_receiver_front",
-    "south": "create_stressbound:block/stress_receiver_side",
-    "west": "create_stressbound:block/stress_receiver_side",
-    "east": "create_stressbound:block/stress_receiver_side"
-  }
+    "side": "create_stressbound:block/stress_receiver_side",
+    "top": "create_stressbound:block/stress_receiver_top",
+    "front": "create_stressbound:block/stress_receiver_front",
+    "axis": "create:block/axis",
+    "axis_top": "create:block/axis_top"
+  },
+  "elements": [
+    {
+      "from": [0, 0, 0],
+      "to": [16, 16, 16],
+      "faces": {
+        "down": { "texture": "#side", "cullface": "down" },
+        "up": { "texture": "#top", "cullface": "up" },
+        "north": { "texture": "#front", "cullface": "north" },
+        "south": { "texture": "#side", "cullface": "south" },
+        "west": { "texture": "#side", "cullface": "west" },
+        "east": { "texture": "#side", "cullface": "east" }
+      }
+    },
+    {
+      "name": "output_shaft",
+      "from": [6, 6, -3],
+      "to": [10, 10, 3],
+      "faces": {
+        "north": { "uv": [6, 6, 10, 10], "texture": "#axis_top" },
+        "south": { "uv": [6, 6, 10, 10], "texture": "#axis_top" },
+        "east": { "uv": [5, 6, 11, 10], "texture": "#axis" },
+        "west": { "uv": [5, 6, 11, 10], "texture": "#axis" },
+        "up": { "uv": [5, 6, 11, 10], "texture": "#axis" },
+        "down": { "uv": [5, 6, 11, 10], "texture": "#axis" }
+      }
+    }
+  ]
 }
