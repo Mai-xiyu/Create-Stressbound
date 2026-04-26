@@ -80,6 +80,13 @@ ordering = "AFTER"
 side = "BOTH"
 
 [[dependencies."${mod_id}"]]
+modId = "ponder"
+type = "required"
+versionRange = "[1.0.82,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies."${mod_id}"]]
 modId = "aeronautics"
 type = "optional"
 versionRange = "[1.0.3,)"
