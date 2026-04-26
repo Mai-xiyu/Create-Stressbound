@@ -51,5 +51,17 @@
   "create_stressbound.receiver_status.invalid_transmitter": "发送端无效",
   "create_stressbound.receiver_status.invalid_receiver": "接收端无效",
   "create_stressbound.receiver_status.remote_loop": "已阻止远程循环",
-  "create_stressbound.receiver_status.unsupported_anchor": "锚点类型暂未实现"
+  "create_stressbound.receiver_status.unsupported_anchor": "锚点类型暂未实现",
+  "create_stressbound.ponder.tag.stress_links": "远程应力链路",
+  "create_stressbound.ponder.tag.stress_links.description": "用于在静态结构和移动结构之间桥接 Create 旋转动力的组件",
+  "create_stressbound.ponder.stressbound_linking.header": "绑定远程应力链路",
+  "create_stressbound.ponder.stressbound_linking.text_1": "应力发送端会读取本地 Create 动力网络的转速和剩余 SU。",
+  "create_stressbound.ponder.stressbound_linking.text_2": "手持动力绑定器右键发送端，即可记录发送端。",
+  "create_stressbound.ponder.stressbound_linking.text_3": "然后右键接收端。链路会预留一份可配置的 SU 预算。",
+  "create_stressbound.ponder.stressbound_linking.text_4": "当两端都已加载且没有被红石禁用时，接收端会输出远程转速。",
+  "create_stressbound.ponder.stressbound_linking.text_5": "红石可以暂停任意一端，过载保护则让服务端预算更可控。",
+  "create_stressbound.ponder.stressbound_moving.header": "移动结构上的链路",
+  "create_stressbound.ponder.stressbound_moving.text_1": "Stressbound 端点可以被 Create 机械结构、火车以及兼容航空学风格的实体携带。",
+  "create_stressbound.ponder.stressbound_moving.text_2": "移动时，链路会跟随运行时端点 ID，而不是假设方块位置固定不变。",
+  "create_stressbound.ponder.stressbound_moving.text_3": "为了获得更好的性能，请保持两端区块加载，并避免接收端和发送端形成远程循环。"
 }

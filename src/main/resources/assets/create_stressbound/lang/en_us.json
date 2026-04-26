@@ -51,5 +51,17 @@
   "create_stressbound.receiver_status.invalid_transmitter": "Invalid Transmitter",
   "create_stressbound.receiver_status.invalid_receiver": "Invalid Receiver",
   "create_stressbound.receiver_status.remote_loop": "Remote Loop Blocked",
-  "create_stressbound.receiver_status.unsupported_anchor": "Unsupported Anchor"
+  "create_stressbound.receiver_status.unsupported_anchor": "Unsupported Anchor",
+  "create_stressbound.ponder.tag.stress_links": "Remote Stress Links",
+  "create_stressbound.ponder.tag.stress_links.description": "Components used to bridge Create rotational force between static and moving structures",
+  "create_stressbound.ponder.stressbound_linking.header": "Binding a remote stress link",
+  "create_stressbound.ponder.stressbound_linking.text_1": "The Stress Transmitter reads speed and spare SU from its local Create network.",
+  "create_stressbound.ponder.stressbound_linking.text_2": "Right-click the transmitter with the Kinetic Binder to store it.",
+  "create_stressbound.ponder.stressbound_linking.text_3": "Then right-click a receiver. The link reserves a configurable SU budget.",
+  "create_stressbound.ponder.stressbound_linking.text_4": "When both endpoints are loaded and not disabled by redstone, the receiver outputs the remote speed.",
+  "create_stressbound.ponder.stressbound_linking.text_5": "Redstone can pause either side, and overload protection keeps the server-friendly budget predictable.",
+  "create_stressbound.ponder.stressbound_moving.header": "Links on moving structures",
+  "create_stressbound.ponder.stressbound_moving.text_1": "Stressbound endpoints can be carried by Create Contraptions, trains, and compatible Aeronautics-style bodies.",
+  "create_stressbound.ponder.stressbound_moving.text_2": "While moving, the link follows runtime endpoint ids instead of assuming fixed block positions.",
+  "create_stressbound.ponder.stressbound_moving.text_3": "For best performance, keep both chunks loaded and avoid remote loops between receivers and transmitters."
 }

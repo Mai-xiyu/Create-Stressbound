@@ -4,14 +4,17 @@ import com.mojang.logging.LogUtils;
 import com.simibubi.create.api.behaviour.movement.MovementBehaviour;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTabs;
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import org.slf4j.Logger;
+import org.xiyu.create_stressbound.client.StressboundClient;
 import org.xiyu.create_stressbound.command.StressboundCommands;
 import org.xiyu.create_stressbound.compat.MovingStructureSupport;
 import org.xiyu.create_stressbound.content.link.EndpointRole;
@@ -33,6 +36,9 @@ public final class CreateStressbound {
 
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(this::addCreativeTabEntries);
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            modEventBus.addListener(StressboundClient::clientSetup);
+        }
         modContainer.registerConfig(ModConfig.Type.COMMON, StressboundConfig.SPEC);
 
         NeoForge.EVENT_BUS.addListener(StressLinkService::onServerTick);
