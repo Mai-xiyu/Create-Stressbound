@@ -1,10 +1,10 @@
 {
   "variants": {
-    "facing=down": { "model": "create_stressbound:block/stress_receiver", "x": 90, "uvlock": true },
-    "facing=up": { "model": "create_stressbound:block/stress_receiver", "x": 270, "uvlock": true },
-    "facing=north": { "model": "create_stressbound:block/stress_receiver" },
-    "facing=south": { "model": "create_stressbound:block/stress_receiver", "y": 180, "uvlock": true },
-    "facing=west": { "model": "create_stressbound:block/stress_receiver", "y": 270, "uvlock": true },
-    "facing=east": { "model": "create_stressbound:block/stress_receiver", "y": 90, "uvlock": true }
+    "facing=up":    { "model": "create_stressbound:block/stress_receiver" },
+    "facing=down":  { "model": "create_stressbound:block/stress_receiver" },
+    "facing=north": { "model": "create_stressbound:block/stress_receiver", "x": 90, "y": 180, "uvlock": true },
+    "facing=south": { "model": "create_stressbound:block/stress_receiver", "x": 90, "y": 180, "uvlock": true },
+    "facing=east":  { "model": "create_stressbound:block/stress_receiver", "x": 90, "y": 90,  "uvlock": true },
+    "facing=west":  { "model": "create_stressbound:block/stress_receiver", "x": 90, "y": 90,  "uvlock": true }
   }
 }

@@ -1,3 +1,8 @@
 {
-  "parent": "create_stressbound:block/stress_transmitter"
+  "parent": "create_stressbound:block/stress_link_item",
+  "textures": {
+    "casing":    "create:block/brass_casing",
+    "opening":   "create:block/brass_gearbox",
+    "indicator": "create_stressbound:block/stress_transmitter_indicator"
+  }
 }

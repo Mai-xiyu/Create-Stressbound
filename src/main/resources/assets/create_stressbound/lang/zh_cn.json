@@ -2,6 +2,7 @@
   "block.create_stressbound.stress_transmitter": "应力发送端",
   "block.create_stressbound.stress_receiver": "应力接收端",
   "item.create_stressbound.kinetic_binder": "动力绑定器",
+  "itemGroup.create_stressbound.main": "机械动力：应力链界",
   "item.create_stressbound.kinetic_binder.tooltip": "先右键发送端，再右键接收端完成绑定。潜行右键接收端可清除链路，潜行右键空气可清除记录。",
   "message.create_stressbound.binder.transmitter_stored": "已记录发送端：%s",
   "message.create_stressbound.binder.receiver_not_linked": "这个接收端当前没有链路。",
