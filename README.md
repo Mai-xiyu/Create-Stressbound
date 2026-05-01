@@ -8,19 +8,19 @@ Instead of running shafts across long distances, players can bind a Stress Trans
 
 ### In-Game Test
 
-![In-game stress link test](docs/In-Game%20Test.gif)
+![In-game stress link test](https://github.com/Mai-xiyu/Create-Stressbound/raw/main/docs/In-Game%20Test.gif)
 
 ### Ponder Tutorial
 
-![Ponder tutorial](docs/Ponder.gif)
+![Ponder tutorial](https://github.com/Mai-xiyu/Create-Stressbound/raw/main/docs/Ponder.gif)
 
 ### Wireless Controller Demo
 
-![Wireless controller demo](docs/Wireless%20Controller%20Demo.gif)
+![Wireless controller demo](https://github.com/Mai-xiyu/Create-Stressbound/raw/main/docs/Wireless%20Controller%20Demo.gif)
 
 ### Create Aeronautics Compatibility
 
-![Create Aeronautics compatibility demo](docs/Create%20Aeronautics%20Compatibility.gif)
+![Create Aeronautics compatibility demo](https://github.com/Mai-xiyu/Create-Stressbound/raw/main/docs/Create%20Aeronautics%20Compatibility.gif)
 
 ## Features
 
