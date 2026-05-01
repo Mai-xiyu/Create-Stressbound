@@ -12,6 +12,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.xiyu.create_stressbound.CreateStressbound;
 import org.xiyu.create_stressbound.registry.StressboundItems;
@@ -42,6 +44,7 @@ public final class StressboundPonderScenes {
         scene.title("stressbound_linking", "Binding a remote stress link");
         scene.configureBasePlate(0, 0, 8);
         scene.scaleSceneView(0.82F);
+        addCheckerboardBase(scene, util, 8);
         scene.showBasePlate();
         scene.idle(5);
 
@@ -108,6 +111,7 @@ public final class StressboundPonderScenes {
         scene.title("stressbound_moving", "Links on moving structures");
         scene.configureBasePlate(0, 0, 8);
         scene.scaleSceneView(0.82F);
+        addCheckerboardBase(scene, util, 8);
         scene.showBasePlate();
         scene.idle(5);
 
@@ -145,5 +149,15 @@ public final class StressboundPonderScenes {
             .independent(20)
             .colored(PonderPalette.GREEN);
         scene.idle(80);
+    }
+
+    private static void addCheckerboardBase(CreateSceneBuilder scene, SceneBuildingUtil util, int size) {
+        BlockState white = Blocks.WHITE_CONCRETE.defaultBlockState();
+        BlockState lightGray = Blocks.LIGHT_GRAY_CONCRETE.defaultBlockState();
+        for (int x = 0; x < size; x++) {
+            for (int z = 0; z < size; z++) {
+                scene.world().setBlock(util.grid().at(x, 0, z), (x + z) % 2 == 0 ? white : lightGray, false);
+            }
+        }
     }
 }
