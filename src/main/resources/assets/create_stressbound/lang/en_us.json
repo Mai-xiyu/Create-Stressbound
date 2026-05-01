@@ -2,6 +2,7 @@
   "block.create_stressbound.stress_transmitter": "Stress Transmitter",
   "block.create_stressbound.stress_receiver": "Stress Receiver",
   "item.create_stressbound.kinetic_binder": "Kinetic Binder",
+  "itemGroup.create_stressbound.main": "Create: Stressbound",
   "item.create_stressbound.kinetic_binder.tooltip": "Right-click a transmitter, then right-click a receiver to bind. Shift-right-click a receiver to clear its link; shift-right-click air to clear the stored transmitter.",
   "message.create_stressbound.binder.transmitter_stored": "Stored transmitter: %s",
   "message.create_stressbound.binder.receiver_not_linked": "This receiver is not linked.",

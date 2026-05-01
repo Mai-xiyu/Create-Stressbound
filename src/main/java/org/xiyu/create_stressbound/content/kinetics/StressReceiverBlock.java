@@ -18,7 +18,7 @@ public class StressReceiverBlock extends DirectionalKineticBlock implements IBE<
 
     @Override
     public boolean hasShaftTowards(LevelReader world, BlockPos pos, BlockState state, Direction face) {
-        return state.getValue(FACING) == face;
+        return state.getValue(FACING).getAxis() == face.getAxis();
     }
 
     @Override

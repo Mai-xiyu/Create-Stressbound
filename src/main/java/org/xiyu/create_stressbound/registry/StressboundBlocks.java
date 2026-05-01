@@ -17,12 +17,14 @@ public final class StressboundBlocks {
         () -> new StressTransmitterBlock(BlockBehaviour.Properties.of()
             .strength(3.5F)
             .mapColor(MapColor.TERRACOTTA_YELLOW)
+            .noOcclusion()
             .requiresCorrectToolForDrops()));
 
     public static final DeferredBlock<StressReceiverBlock> STRESS_RECEIVER = BLOCKS.register("stress_receiver",
         () -> new StressReceiverBlock(BlockBehaviour.Properties.of()
             .strength(3.5F)
             .mapColor(MapColor.COLOR_ORANGE)
+            .noOcclusion()
             .requiresCorrectToolForDrops()));
 
     private StressboundBlocks() {

@@ -1,9 +1,8 @@
 {
-  "parent": "minecraft:block/orientable",
+  "parent": "create_stressbound:block/stress_link_block",
   "textures": {
-    "particle": "create_stressbound:block/stress_transmitter_side",
-    "side": "create_stressbound:block/stress_transmitter_side",
-    "top": "create_stressbound:block/stress_transmitter_top",
-    "front": "create_stressbound:block/stress_transmitter_front"
+    "casing":    "create:block/brass_casing",
+    "opening":   "create:block/brass_gearbox",
+    "indicator": "create_stressbound:block/stress_transmitter_indicator"
   }
 }
