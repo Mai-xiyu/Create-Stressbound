@@ -18,11 +18,11 @@ public final class StressboundConfig {
         .define("general.requireLoadedChunks", true);
 
     private static final ModConfigSpec.BooleanValue TRANSMITTER_POWERED_STOPS = BUILDER
-        .comment("If true, a powered transmitter pauses all of its outgoing links. | 为 true 时，被红石充能的发送端会暂停所有输出链路。")
+        .comment("If true, redstone throttles transmitter output from full at signal 0 to stopped at signal 15. | 为 true 时，发送端会按红石强度调制输出：信号 0 为满输出，信号 15 为停止。")
         .define("redstone.transmitterPoweredStops", true);
 
     private static final ModConfigSpec.BooleanValue RECEIVER_POWERED_STOPS = BUILDER
-        .comment("If true, a powered receiver refuses remote power. | 为 true 时，被红石充能的接收端会拒绝远程动力。")
+        .comment("If true, redstone throttles receiver output from full at signal 0 to stopped at signal 15. | 为 true 时，接收端会按红石强度调制输出：信号 0 为满输出，信号 15 为停止。")
         .define("redstone.receiverPoweredStops", true);
 
     private static final ModConfigSpec.BooleanValue STRICT_OVERLOAD_MODE = BUILDER
@@ -46,8 +46,12 @@ public final class StressboundConfig {
         .defineInRange("limits.defaultRequestedStress", 256, 1, Integer.MAX_VALUE);
 
     private static final ModConfigSpec.IntValue EVALUATION_INTERVAL_TICKS = BUILDER
-        .comment("How often the server recomputes link budgets. | 服务端重新计算链路预算的间隔。")
+        .comment("Base interval for recomputing link state and stress budgets. Redstone control may use a faster interval. | 服务端重新计算链路状态和应力预算的基础间隔；红石控制可使用更快间隔。")
         .defineInRange("server.evaluationIntervalTicks", 20, 1, 200);
+
+    private static final ModConfigSpec.IntValue REDSTONE_EVALUATION_INTERVAL_TICKS = BUILDER
+        .comment("When redstone throttling is enabled, links are recomputed at least this often. Use 1 for stable feedback builds. | 启用红石调速时，链路至少按此间隔重算；不倒翁等反馈结构建议为 1。")
+        .defineInRange("server.redstoneEvaluationIntervalTicks", 1, 1, 20);
 
     public static final ModConfigSpec SPEC = BUILDER.build();
 
@@ -61,6 +65,7 @@ public final class StressboundConfig {
     public static int maxStressPerLink;
     public static int defaultRequestedStress;
     public static int evaluationIntervalTicks;
+    public static int redstoneEvaluationIntervalTicks;
 
     private StressboundConfig() {
     }
@@ -77,6 +82,7 @@ public final class StressboundConfig {
         maxStressPerLink = MAX_STRESS_PER_LINK.get();
         defaultRequestedStress = DEFAULT_REQUESTED_STRESS.get();
         evaluationIntervalTicks = EVALUATION_INTERVAL_TICKS.get();
+        redstoneEvaluationIntervalTicks = REDSTONE_EVALUATION_INTERVAL_TICKS.get();
     }
 
     public static int clampRequestedStress(int requestedStress) {
@@ -85,5 +91,21 @@ public final class StressboundConfig {
             clamped = Math.min(clamped, maxStressPerLink);
         }
         return clamped;
+    }
+
+    public static int clampRedstoneSignal(int signal) {
+        return Math.max(0, Math.min(15, signal));
+    }
+
+    public static float redstoneOutputScale(int signal) {
+        return (15 - clampRedstoneSignal(signal)) / 15.0F;
+    }
+
+    public static int scaleStressByRedstone(int stress, int signal) {
+        float scale = redstoneOutputScale(signal);
+        if (stress <= 0 || scale <= 0.0F) {
+            return 0;
+        }
+        return Math.max(1, Math.round(stress * scale));
     }
 }

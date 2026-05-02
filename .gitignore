@@ -13,7 +13,7 @@ run/
 logs/
 crash-reports/
 *.log
-assets/
+/assets/
 
 # Local notes and scratch files
 a.md

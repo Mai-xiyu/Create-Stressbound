@@ -19,6 +19,8 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity {
     private static final String LINK_ID_KEY = "LinkId";
     private static final String REQUESTED_STRESS_KEY = "RequestedStress";
     private static final String STATUS_KEY = "ReceiverStatus";
+    private static final String TRANSMITTED_SPEED_KEY = "TransmittedSpeed";
+    private static final String GRANTED_STRESS_KEY = "GrantedStress";
 
     private UUID endpointId;
     private UUID linkId;
@@ -88,6 +90,11 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity {
         } else {
             tooltip.add(Component.translatable("goggle.create_stressbound.receiver.requested", getRequestedStress())
                 .withStyle(ChatFormatting.AQUA));
+        }
+        if (getRedstoneSignal() > 0) {
+            tooltip.add(Component.translatable("goggle.create_stressbound.receiver.redstone_scale",
+                    getRedstoneSignal(), Math.round(getRedstoneOutputScale() * 100.0F))
+                .withStyle(isPoweredDisabled() ? ChatFormatting.RED : ChatFormatting.YELLOW));
         }
         if (isPoweredDisabled()) {
             tooltip.add(Component.translatable("goggle.create_stressbound.receiver.powered_disabled")
@@ -176,8 +183,27 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity {
         return grantedStress;
     }
 
+    public int getRedstoneSignal() {
+        if (level == null || !StressboundConfig.receiverPoweredStops) {
+            return 0;
+        }
+        return StressboundConfig.clampRedstoneSignal(level.getBestNeighborSignal(worldPosition));
+    }
+
+    public float getRedstoneOutputScale() {
+        return StressboundConfig.redstoneOutputScale(getRedstoneSignal());
+    }
+
+    public float scaleIncomingSpeed(float speed) {
+        return speed * getRedstoneOutputScale();
+    }
+
+    public int scaleGrantedStress(int stress) {
+        return StressboundConfig.scaleStressByRedstone(stress, getRedstoneSignal());
+    }
+
     public boolean isPoweredDisabled() {
-        return level != null && StressboundConfig.receiverPoweredStops && level.hasNeighborSignal(worldPosition);
+        return getRedstoneSignal() >= 15;
     }
 
     @Override
@@ -189,6 +215,8 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity {
         }
         tag.putInt(REQUESTED_STRESS_KEY, requestedStress);
         tag.putString(STATUS_KEY, status.name());
+        tag.putFloat(TRANSMITTED_SPEED_KEY, transmittedSpeed);
+        tag.putInt(GRANTED_STRESS_KEY, grantedStress);
     }
 
     @Override
@@ -200,5 +228,7 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity {
             ? tag.getInt(REQUESTED_STRESS_KEY)
             : (StressboundConfig.defaultRequestedStress > 0 ? StressboundConfig.defaultRequestedStress : 256);
         status = tag.contains(STATUS_KEY) ? ReceiverStatus.valueOf(tag.getString(STATUS_KEY)) : ReceiverStatus.IDLE;
+        transmittedSpeed = tag.getFloat(TRANSMITTED_SPEED_KEY);
+        grantedStress = tag.getInt(GRANTED_STRESS_KEY);
     }
 }
