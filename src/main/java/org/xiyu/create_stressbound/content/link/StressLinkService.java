@@ -28,11 +28,19 @@ public final class StressLinkService {
         MinecraftServer server = event.getServer();
         MovingEndpointRegistry.get(server).cleanup(server.getTickCount());
 
-        int interval = Math.max(1, StressboundConfig.evaluationIntervalTicks);
+        int interval = evaluationInterval();
         if (server.getTickCount() % interval != 0) {
             return;
         }
         evaluate(server);
+    }
+
+    private static int evaluationInterval() {
+        int interval = Math.max(1, StressboundConfig.evaluationIntervalTicks);
+        if (StressboundConfig.transmitterPoweredStops || StressboundConfig.receiverPoweredStops) {
+            interval = Math.min(interval, Math.max(1, StressboundConfig.redstoneEvaluationIntervalTicks));
+        }
+        return interval;
     }
 
     public static BindResult bind(ServerPlayer player, ResourceKey<Level> transmitterDimension,
@@ -264,7 +272,13 @@ public final class StressLinkService {
                     receiverBlockEntity.applyRuntime(record.id(), 0.0F, 0, ReceiverStatus.RECEIVER_DISABLED);
                     continue;
                 }
-                activeReceivers.add(new ActiveReceiver(record, receiverBlockEntity));
+                int reservedStress = StressboundConfig.clampRequestedStress(record.requestedStress());
+                int scaledReservedStress = receiverBlockEntity.scaleGrantedStress(reservedStress);
+                if (scaledReservedStress <= 0) {
+                    receiverBlockEntity.applyRuntime(record.id(), 0.0F, 0, ReceiverStatus.RECEIVER_DISABLED);
+                    continue;
+                }
+                activeReceivers.add(new ActiveReceiver(record, receiverBlockEntity, scaledReservedStress));
                 continue;
             }
 
@@ -278,7 +292,7 @@ public final class StressLinkService {
         }
 
         long totalReservedStress = activeReceivers.stream()
-            .mapToLong(active -> StressboundConfig.clampRequestedStress(active.record().requestedStress()))
+            .mapToLong(ActiveReceiver::reservedStress)
             .sum();
 
         if (StressboundConfig.strictOverloadMode && totalReservedStress > transmitter.availableStress()) {
@@ -288,12 +302,13 @@ public final class StressLinkService {
 
         long remainingStress = transmitter.availableStress();
         for (ActiveReceiver activeReceiver : activeReceivers) {
-            int reservedStress = StressboundConfig.clampRequestedStress(activeReceiver.record().requestedStress());
+            int reservedStress = activeReceiver.reservedStress();
             if (reservedStress > remainingStress) {
                 activeReceiver.receiver().applyRuntime(activeReceiver.record().id(), 0.0F, 0, ReceiverStatus.OVERLOADED);
                 continue;
             }
-            activeReceiver.receiver().applyRuntime(activeReceiver.record().id(), transmitter.speed(), reservedStress, ReceiverStatus.ACTIVE);
+            activeReceiver.receiver().applyRuntime(activeReceiver.record().id(),
+                activeReceiver.receiver().scaleIncomingSpeed(transmitter.speed()), reservedStress, ReceiverStatus.ACTIVE);
             remainingStress -= reservedStress;
         }
     }
@@ -322,8 +337,8 @@ public final class StressLinkService {
         }
 
         return TransmitterRuntime.active(
-            transmitter.getSourceSpeed(),
-            transmitter.getAvailableStressBudget(),
+            transmitter.getControlledSourceSpeed(),
+            transmitter.getControlledAvailableStressBudget(),
             transmitter.isPoweredDisabled(),
             transmitter.isRemoteLoopSource()
         );
@@ -413,7 +428,7 @@ public final class StressLinkService {
         }
     }
 
-    private record ActiveReceiver(StressLinkRecord record, StressReceiverBlockEntity receiver) {
+    private record ActiveReceiver(StressLinkRecord record, StressReceiverBlockEntity receiver, int reservedStress) {
     }
 
     private record TransmitterRuntime(Optional<ReceiverStatus> failureStatus, float speed, int availableStress,

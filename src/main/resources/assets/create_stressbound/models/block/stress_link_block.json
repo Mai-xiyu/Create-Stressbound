@@ -1,0 +1,99 @@
+{
+  "credit": "Create Stressbound - based on Create encased_shaft",
+  "parent": "block/block",
+  "textures": {
+    "particle": "#casing",
+    "1": "#opening"
+  },
+  "elements": [
+    {
+      "name": "Bottom",
+      "from": [0, 0, 0],
+      "to": [16, 16, 2],
+      "faces": {
+        "north": {"uv": [0, 0, 16, 16], "texture": "#casing"},
+        "east":  {"uv": [14, 0, 16, 16], "texture": "#casing"},
+        "south": {"uv": [0, 0, 16, 16], "texture": "#casing"},
+        "west":  {"uv": [0, 0, 2, 16], "texture": "#casing"},
+        "up":    {"uv": [0, 14, 16, 16], "rotation": 180, "texture": "#casing"},
+        "down":  {"uv": [0, 14, 16, 16], "texture": "#casing"}
+      }
+    },
+    {
+      "name": "Core",
+      "from": [1, 0.95, 2],
+      "to": [15, 15.05, 14],
+      "faces": {
+        "up":   {"uv": [1, 2, 15, 14], "rotation": 180, "texture": "#1"},
+        "down": {"uv": [1, 2, 15, 14], "texture": "#1"}
+      }
+    },
+    {
+      "name": "Top",
+      "from": [0, 0, 14],
+      "to": [16, 16, 16],
+      "faces": {
+        "north": {"uv": [0, 0, 16, 16], "texture": "#casing"},
+        "east":  {"uv": [0, 0, 2, 16], "texture": "#casing"},
+        "south": {"uv": [0, 0, 16, 16], "texture": "#casing"},
+        "west":  {"uv": [14, 0, 16, 16], "texture": "#casing"},
+        "up":    {"uv": [0, 0, 16, 2], "rotation": 180, "texture": "#casing"},
+        "down":  {"uv": [0, 0, 16, 2], "texture": "#casing"}
+      }
+    },
+    {
+      "name": "SideWest",
+      "from": [0, 0, 2],
+      "to": [2, 16, 14],
+      "faces": {
+        "east": {"uv": [2, 0, 14, 16], "texture": "#casing"},
+        "west": {"uv": [2, 0, 14, 16], "texture": "#casing"},
+        "up":   {"uv": [14, 2, 16, 14], "rotation": 180, "texture": "#casing"},
+        "down": {"uv": [0, 2, 2, 14], "texture": "#casing"}
+      }
+    },
+    {
+      "name": "SideEast",
+      "from": [14, 0, 2],
+      "to": [16, 16, 14],
+      "faces": {
+        "east": {"uv": [2, 0, 14, 16], "texture": "#casing"},
+        "west": {"uv": [2, 0, 14, 16], "texture": "#casing"},
+        "up":   {"uv": [0, 2, 2, 14], "rotation": 180, "texture": "#casing"},
+        "down": {"uv": [14, 2, 16, 14], "texture": "#casing"}
+      }
+    },
+    {
+      "name": "IndicatorWest",
+      "from": [-0.01, 4, 4],
+      "to": [-0.01, 12, 12],
+      "faces": {
+        "west": {"uv": [4, 4, 12, 12], "texture": "#indicator"}
+      }
+    },
+    {
+      "name": "IndicatorEast",
+      "from": [16.01, 4, 4],
+      "to": [16.01, 12, 12],
+      "faces": {
+        "east": {"uv": [4, 4, 12, 12], "texture": "#indicator"}
+      }
+    },
+    {
+      "name": "IndicatorNorth",
+      "from": [4, 4, -0.01],
+      "to": [12, 12, -0.01],
+      "faces": {
+        "north": {"uv": [4, 4, 12, 12], "texture": "#indicator"}
+      }
+    },
+    {
+      "name": "IndicatorSouth",
+      "from": [4, 4, 16.01],
+      "to": [12, 12, 16.01],
+      "faces": {
+        "south": {"uv": [4, 4, 12, 12], "texture": "#indicator"}
+      }
+    }
+  ]
+}

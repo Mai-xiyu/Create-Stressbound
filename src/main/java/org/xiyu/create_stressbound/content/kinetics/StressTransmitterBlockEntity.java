@@ -46,8 +46,27 @@ public class StressTransmitterBlockEntity extends KineticBlockEntity {
         return Math.max(capacity - stress, 0.0F);
     }
 
+    public int getRedstoneSignal() {
+        if (level == null || !StressboundConfig.transmitterPoweredStops) {
+            return 0;
+        }
+        return StressboundConfig.clampRedstoneSignal(level.getBestNeighborSignal(worldPosition));
+    }
+
+    public float getRedstoneOutputScale() {
+        return StressboundConfig.redstoneOutputScale(getRedstoneSignal());
+    }
+
+    public float getControlledSourceSpeed() {
+        return getSourceSpeed() * getRedstoneOutputScale();
+    }
+
+    public int getControlledAvailableStressBudget() {
+        return StressboundConfig.scaleStressByRedstone(getAvailableStressBudget(), getRedstoneSignal());
+    }
+
     public boolean isPoweredDisabled() {
-        return level != null && StressboundConfig.transmitterPoweredStops && level.hasNeighborSignal(worldPosition);
+        return getRedstoneSignal() >= 15;
     }
 
     public boolean isRemoteLoopSource() {
@@ -63,18 +82,23 @@ public class StressTransmitterBlockEntity extends KineticBlockEntity {
             tooltip.add(Component.translatable("goggle.create_stressbound.transmitter.no_input")
                 .withStyle(ChatFormatting.DARK_GRAY));
         } else {
-            tooltip.add(Component.translatable("goggle.create_stressbound.transmitter.speed", format(getSourceSpeed()))
+            tooltip.add(Component.translatable("goggle.create_stressbound.transmitter.speed", format(getControlledSourceSpeed()))
                 .withStyle(ChatFormatting.GRAY));
         }
         tooltip.add(Component.translatable("goggle.create_stressbound.transmitter.available",
-                hasCreativeSource()
+                hasCreativeSource() && getRedstoneSignal() == 0
                     ? Component.translatable("goggle.create_stressbound.value.creative")
-                    : Component.literal(format(getAvailableStressBudget()) + " SU"))
+                    : Component.literal(format(getControlledAvailableStressBudget()) + " SU"))
             .withStyle(ChatFormatting.AQUA));
         if (!hasCreativeSource()) {
             tooltip.add(Component.translatable("goggle.create_stressbound.transmitter.network",
                     format(Math.round(stress)), format(Math.round(capacity)))
                 .withStyle(ChatFormatting.DARK_GRAY));
+        }
+        if (getRedstoneSignal() > 0) {
+            tooltip.add(Component.translatable("goggle.create_stressbound.transmitter.redstone_scale",
+                    getRedstoneSignal(), Math.round(getRedstoneOutputScale() * 100.0F))
+                .withStyle(isPoweredDisabled() ? ChatFormatting.RED : ChatFormatting.YELLOW));
         }
         if (isPoweredDisabled()) {
             tooltip.add(Component.translatable("goggle.create_stressbound.transmitter.powered_disabled")
@@ -154,8 +178,8 @@ public class StressTransmitterBlockEntity extends KineticBlockEntity {
     protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
         super.write(tag, registries, clientPacket);
         tag.putUUID(ENDPOINT_ID_KEY, getEndpointId());
-        tag.putFloat(LATCHED_SPEED_KEY, getSourceSpeed());
-        tag.putInt(LATCHED_AVAILABLE_STRESS_KEY, getAvailableStressBudget());
+        tag.putFloat(LATCHED_SPEED_KEY, getControlledSourceSpeed());
+        tag.putInt(LATCHED_AVAILABLE_STRESS_KEY, getControlledAvailableStressBudget());
         tag.putBoolean(LATCHED_POWERED_DISABLED_KEY, isPoweredDisabled());
         tag.putBoolean(LATCHED_REMOTE_LOOP_KEY, isRemoteLoopSource());
     }

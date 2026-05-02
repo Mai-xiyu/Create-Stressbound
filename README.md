@@ -22,6 +22,10 @@ Instead of running shafts across long distances, players can bind a Stress Trans
 
 ![Create Aeronautics compatibility demo](https://github.com/Mai-xiyu/Create-Stressbound/raw/main/docs/Create%20Aeronautics%20Compatibility.gif)
 
+### Compass Tumbler Template
+
+The bundled tumbler template demonstrates analog redstone throttling as a feedback controller. A `simulated:gimbal_sensor` reads tilt, Create redstone links cross-feed that signal, and Stress Receivers throttle the opposite thrusters to push the body back toward level.
+
 ## Features
 
 - Adds `Stress Transmitter`, `Stress Receiver`, and `Kinetic Binder`.
@@ -31,8 +35,10 @@ Instead of running shafts across long distances, players can bind a Stress Trans
 - Supports static Create kinetic networks.
 - Supports runtime anchors for Create contraptions and Create trains.
 - Includes heuristic runtime-anchor support for Create Aeronautics / Simulated-style moving structures.
+- Supports analog redstone throttling on both transmitters and receivers.
 - Displays link state, remote speed, requested SU, and granted SU through Create goggles.
-- Provides Ponder scenes for basic linking and moving-structure behavior.
+- Provides Ponder scenes for basic linking, moving-structure behavior, and the compass tumbler template.
+- Ships a placeable tumbler structure template for testing feedback-driven Create Aeronautics / Simulated-style builds.
 - Includes English and Simplified Chinese localization.
 - Keeps server control in config: link limits, receiver limits, stress budgets, overload mode, and evaluation interval.
 
@@ -66,6 +72,16 @@ Useful interactions:
 - Shift-right-click air with the `Kinetic Binder` to clear the stored transmitter selection.
 - Use a Create wrench to adjust block facing as usual.
 
+## Tumbler Template
+
+Place the bundled compass tumbler structure with:
+
+```mcfunction
+/place template create_stressbound:stressbound/tumbler
+```
+
+The template uses a motor/transmitter bank as its remote stress source, four side receivers with propellers for corrective thrust, a center receiver with a gyroscopic propeller bearing, and four redstone-link channels driven by the gimbal sensor. Because this is a feedback build, keep `redstoneEvaluationIntervalTicks` at `1` so output changes follow the tilt signal every tick.
+
 ## Stress Budget Model
 
 Stressbound is designed to avoid turning remote transmission into free power.
@@ -75,7 +91,7 @@ Each receiver reserves a configurable SU budget. During evaluation, the transmit
 Important behavior:
 
 - A transmitter does not generate stress by itself.
-- A receiver outputs the remote rotational speed only while the link is valid, loaded, and not disabled.
+- A receiver outputs the remote rotational speed only while the link is valid and loaded. Analog redstone can throttle either endpoint from full output at signal `0` to stopped at signal `15`.
 - Strict overload mode can shut down all receivers on a transmitter when total reserved stress exceeds available stress.
 - Server owners can limit links per player, receivers per transmitter, and max SU per link.
 
@@ -117,11 +133,12 @@ Common options:
 - `defaultRequestedStress`: default SU reservation for newly bound receivers.
 - `maxStressPerLink`: maximum SU per link. Use `-1` for unlimited.
 - `strictOverloadMode`: when enabled, over-budget transmitter groups stop instead of partially granting receivers.
-- `evaluationIntervalTicks`: server tick interval for recalculating link state and stress budgets.
+- `evaluationIntervalTicks`: base server tick interval for recalculating link state and stress budgets.
+- `redstoneEvaluationIntervalTicks`: faster interval used while redstone throttling is enabled. Keep this at `1` for feedback builds such as the tumbler template.
 - `maxLinksPerPlayer`: maximum active links owned by one player.
 - `maxReceiversPerTransmitter`: maximum receivers bound to one transmitter.
-- `transmitterPoweredStops`: redstone signal disables transmitter output.
-- `receiverPoweredStops`: redstone signal disables receiver output.
+- `transmitterPoweredStops`: redstone signal throttles transmitter output.
+- `receiverPoweredStops`: redstone signal throttles receiver output.
 
 Existing links store their `RequestedStress` in world data. Changing `defaultRequestedStress` affects new links only. To update existing links, rebind them or use:
 
@@ -158,7 +175,7 @@ Linux / macOS:
 The built jar is written to:
 
 ```text
-build/libs/create_stressbound-1.0-SNAPSHOT.jar
+build/libs/create_stressbound-<version>.jar
 ```
 
 ## License
