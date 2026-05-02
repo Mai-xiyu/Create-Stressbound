@@ -24,6 +24,8 @@ Instead of running shafts across long distances, players can bind a Stress Trans
 
 ### Compass Tumbler Template
 
+![Compass tumbler template demo](https://github.com/Mai-xiyu/Create-Stressbound/raw/main/docs/Compass%20Tumbler.gif)
+
 The bundled tumbler template demonstrates analog redstone throttling as a feedback controller. A `simulated:gimbal_sensor` reads tilt, Create redstone links cross-feed that signal, and Stress Receivers throttle the opposite thrusters to push the body back toward level.
 
 ## Features
