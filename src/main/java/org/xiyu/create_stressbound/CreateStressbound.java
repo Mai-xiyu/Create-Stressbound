@@ -11,6 +11,8 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import org.slf4j.Logger;
 import org.xiyu.create_stressbound.client.StressboundClient;
 import org.xiyu.create_stressbound.command.StressboundCommands;
@@ -18,10 +20,12 @@ import org.xiyu.create_stressbound.compat.MovingStructureSupport;
 import org.xiyu.create_stressbound.content.link.EndpointRole;
 import org.xiyu.create_stressbound.content.link.MovingEndpointMovementBehaviour;
 import org.xiyu.create_stressbound.content.link.StressLinkService;
+import org.xiyu.create_stressbound.network.ReverseTogglePacket;
 import org.xiyu.create_stressbound.registry.StressboundBlockEntities;
 import org.xiyu.create_stressbound.registry.StressboundBlocks;
 import org.xiyu.create_stressbound.registry.StressboundCreativeTabs;
 import org.xiyu.create_stressbound.registry.StressboundItems;
+import org.xiyu.create_stressbound.registry.StressboundMenuTypes;
 
 @Mod(CreateStressbound.MODID)
 public final class CreateStressbound {
@@ -33,11 +37,14 @@ public final class CreateStressbound {
         StressboundItems.register(modEventBus);
         StressboundCreativeTabs.register(modEventBus);
         StressboundBlockEntities.register(modEventBus);
+        StressboundMenuTypes.register(modEventBus);
 
         modEventBus.addListener(this::commonSetup);
+        modEventBus.addListener(this::registerPayloads);
         if (FMLEnvironment.dist == Dist.CLIENT) {
             modEventBus.addListener(StressboundClient::clientSetup);
             modEventBus.addListener(StressboundClient::registerRenderers);
+            modEventBus.addListener(StressboundClient::registerMenuScreens);
         }
         modContainer.registerConfig(ModConfig.Type.COMMON, StressboundConfig.SPEC);
 
@@ -49,6 +56,15 @@ public final class CreateStressbound {
 
     public static ResourceLocation id(String path) {
         return ResourceLocation.parse(MODID + ":" + path);
+    }
+
+    private void registerPayloads(RegisterPayloadHandlersEvent event) {
+        PayloadRegistrar registrar = event.registrar(MODID);
+        registrar.playToServer(
+            ReverseTogglePacket.TYPE,
+            ReverseTogglePacket.CODEC,
+            ReverseTogglePacket::handle
+        );
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {

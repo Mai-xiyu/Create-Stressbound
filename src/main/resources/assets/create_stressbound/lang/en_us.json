@@ -78,5 +78,22 @@
   "create_stressbound.ponder.stressbound_tumbler.text_8": "The lamps sit beside the receiver links and show each side's stop signal.",
   "create_stressbound.ponder.stressbound_tumbler.text_9": "When the east side dips, the west-side sensor output is low, so the east receiver stays fast.",
   "create_stressbound.ponder.stressbound_tumbler.text_10": "The high side receives the strong opposite signal and throttles down, creating a righting torque.",
-  "create_stressbound.ponder.stressbound_tumbler.text_11": "Place the whole template with /place template create_stressbound:stressbound/tumbler."
+  "create_stressbound.ponder.stressbound_tumbler.text_11": "Place the whole template with /place template create_stressbound:stressbound/tumbler.",
+  "gui.create_stressbound.receiver.title": "Stress Receiver",
+  "gui.create_stressbound.receiver.reverse": "Reverse Output: %s",
+  "gui.create_stressbound.receiver.reverse.tooltip": "Flip the receiver shaft direction without rebinding the link.",
+  "gui.create_stressbound.receiver.reverse.on": "ON",
+  "gui.create_stressbound.receiver.reverse.off": "OFF",
+  "gui.create_stressbound.receiver.direction": "Output Direction",
+  "gui.create_stressbound.receiver.direction.clockwise": "Clockwise",
+  "gui.create_stressbound.receiver.direction.counterclockwise": "Counterclockwise",
+  "hud.create_stressbound.title": "Create Stressbound",
+  "hud.create_stressbound.status": "Status",
+  "hud.create_stressbound.speed": "Remote Speed",
+  "hud.create_stressbound.budget": "Remote Budget",
+  "hud.create_stressbound.requested": "Reserved Budget",
+  "hud.create_stressbound.redstone": "Redstone",
+  "hud.create_stressbound.target": "Transmitter",
+  "hud.create_stressbound.target.moving": "Moving structure",
+  "hud.create_stressbound.unlinked": "No link stored"
 }

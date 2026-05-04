@@ -102,6 +102,7 @@ public final class StressLinkService {
         receiver.setLinkId(record.id());
         receiver.setRequestedStress(record.requestedStress());
         receiver.applyRuntime(record.id(), 0.0F, 0, ReceiverStatus.IDLE);
+        transmitter.refreshLinkedReceiverVisuals();
         return BindResult.success(Component.translatable("message.create_stressbound.bind.success", transmitterAnchor.describe())
             .withStyle(ChatFormatting.GREEN));
     }
@@ -118,6 +119,7 @@ public final class StressLinkService {
             .map(record -> record.withTransmitter(newAnchor))
             .toList();
         replacements.forEach(data::put);
+        transmitter.refreshLinkedReceiverVisuals();
     }
 
     public static void refreshReceiverAnchor(StressReceiverBlockEntity receiver) {
@@ -172,8 +174,10 @@ public final class StressLinkService {
             return false;
         }
 
+        StressLinkRecord removed = record.get();
         data.remove(linkId);
-        getStaticReceiver(server, record.get().receiver()).ifPresent(StressReceiverBlockEntity::clearLink);
+        getStaticReceiver(server, removed.receiver()).ifPresent(StressReceiverBlockEntity::clearLink);
+        getStaticTransmitter(server, removed.transmitter()).ifPresent(StressTransmitterBlockEntity::refreshLinkedReceiverVisuals);
         return true;
     }
 
@@ -249,17 +253,20 @@ public final class StressLinkService {
         }
 
         if (transmitter.poweredDisabled()) {
-            records.forEach(record -> applyToStaticReceiver(server, record, 0.0F, 0, ReceiverStatus.TRANSMITTER_DISABLED, brokenLinks));
+            records.forEach(record -> applyToStaticReceiver(server, record, 0.0F, 0,
+                ReceiverStatus.TRANSMITTER_DISABLED, brokenLinks, transmitter.visualAnchor()));
             return;
         }
 
         if (transmitter.remoteLoop()) {
-            records.forEach(record -> applyToStaticReceiver(server, record, 0.0F, 0, ReceiverStatus.REMOTE_LOOP, brokenLinks));
+            records.forEach(record -> applyToStaticReceiver(server, record, 0.0F, 0,
+                ReceiverStatus.REMOTE_LOOP, brokenLinks, transmitter.visualAnchor()));
             return;
         }
 
         if (transmitter.speed() == 0.0F) {
-            records.forEach(record -> applyToStaticReceiver(server, record, 0.0F, 0, ReceiverStatus.IDLE, brokenLinks));
+            records.forEach(record -> applyToStaticReceiver(server, record, 0.0F, 0,
+                ReceiverStatus.IDLE, brokenLinks, transmitter.visualAnchor()));
             return;
         }
 
@@ -269,13 +276,15 @@ public final class StressLinkService {
             if (receiver.staticReceiver().isPresent()) {
                 StressReceiverBlockEntity receiverBlockEntity = receiver.staticReceiver().get();
                 if (receiverBlockEntity.isPoweredDisabled()) {
-                    receiverBlockEntity.applyRuntime(record.id(), 0.0F, 0, ReceiverStatus.RECEIVER_DISABLED);
+                    receiverBlockEntity.applyRuntime(record.id(), 0.0F, 0,
+                        ReceiverStatus.RECEIVER_DISABLED, transmitter.visualAnchor());
                     continue;
                 }
                 int reservedStress = StressboundConfig.clampRequestedStress(record.requestedStress());
                 int scaledReservedStress = receiverBlockEntity.scaleGrantedStress(reservedStress);
                 if (scaledReservedStress <= 0) {
-                    receiverBlockEntity.applyRuntime(record.id(), 0.0F, 0, ReceiverStatus.RECEIVER_DISABLED);
+                    receiverBlockEntity.applyRuntime(record.id(), 0.0F, 0,
+                        ReceiverStatus.RECEIVER_DISABLED, transmitter.visualAnchor());
                     continue;
                 }
                 activeReceivers.add(new ActiveReceiver(record, receiverBlockEntity, scaledReservedStress));
@@ -296,7 +305,8 @@ public final class StressLinkService {
             .sum();
 
         if (StressboundConfig.strictOverloadMode && totalReservedStress > transmitter.availableStress()) {
-            activeReceivers.forEach(active -> active.receiver().applyRuntime(active.record().id(), 0.0F, 0, ReceiverStatus.OVERLOADED));
+            activeReceivers.forEach(active -> active.receiver().applyRuntime(active.record().id(), 0.0F, 0,
+                ReceiverStatus.OVERLOADED, transmitter.visualAnchor()));
             return;
         }
 
@@ -304,11 +314,13 @@ public final class StressLinkService {
         for (ActiveReceiver activeReceiver : activeReceivers) {
             int reservedStress = activeReceiver.reservedStress();
             if (reservedStress > remainingStress) {
-                activeReceiver.receiver().applyRuntime(activeReceiver.record().id(), 0.0F, 0, ReceiverStatus.OVERLOADED);
+                activeReceiver.receiver().applyRuntime(activeReceiver.record().id(), 0.0F, 0,
+                    ReceiverStatus.OVERLOADED, transmitter.visualAnchor());
                 continue;
             }
             activeReceiver.receiver().applyRuntime(activeReceiver.record().id(),
-                activeReceiver.receiver().scaleIncomingSpeed(transmitter.speed()), reservedStress, ReceiverStatus.ACTIVE);
+                activeReceiver.receiver().scaleIncomingSpeed(transmitter.speed()), reservedStress,
+                ReceiverStatus.ACTIVE, transmitter.visualAnchor());
             remainingStress -= reservedStress;
         }
     }
@@ -320,7 +332,8 @@ public final class StressLinkService {
                 .filter(MovingEndpointRegistry.RuntimeEndpoint::isTransmitter);
             if (moving.isPresent()) {
                 MovingEndpointRegistry.RuntimeEndpoint endpoint = moving.get();
-                return TransmitterRuntime.active(endpoint.latchedSpeed(), endpoint.latchedAvailableStress(), endpoint.poweredDisabled(), endpoint.remoteLoop());
+                return TransmitterRuntime.active(endpoint.latchedSpeed(), endpoint.latchedAvailableStress(),
+                    endpoint.poweredDisabled(), endpoint.remoteLoop(), endpoint.anchor());
             }
         }
 
@@ -340,7 +353,8 @@ public final class StressLinkService {
             transmitter.getControlledSourceSpeed(),
             transmitter.getControlledAvailableStressBudget(),
             transmitter.isPoweredDisabled(),
-            transmitter.isRemoteLoopSource()
+            transmitter.isRemoteLoopSource(),
+            transmitter.createAnchor()
         );
     }
 
@@ -370,9 +384,14 @@ public final class StressLinkService {
 
     private static void applyToStaticReceiver(MinecraftServer server, StressLinkRecord record, float speed, int grantedStress,
                                               ReceiverStatus status, List<UUID> brokenLinks) {
+        applyToStaticReceiver(server, record, speed, grantedStress, status, brokenLinks, null);
+    }
+
+    private static void applyToStaticReceiver(MinecraftServer server, StressLinkRecord record, float speed, int grantedStress,
+                                              ReceiverStatus status, List<UUID> brokenLinks, LinkAnchor transmitterVisualAnchor) {
         Optional<StressReceiverBlockEntity> receiver = getStaticReceiver(server, record.receiver());
         if (receiver.isPresent()) {
-            receiver.get().applyRuntime(record.id(), speed, grantedStress, status);
+            receiver.get().applyRuntime(record.id(), speed, grantedStress, status, transmitterVisualAnchor);
             return;
         }
 
@@ -432,13 +451,15 @@ public final class StressLinkService {
     }
 
     private record TransmitterRuntime(Optional<ReceiverStatus> failureStatus, float speed, int availableStress,
-                                      boolean poweredDisabled, boolean remoteLoop) {
-        static TransmitterRuntime active(float speed, int availableStress, boolean poweredDisabled, boolean remoteLoop) {
-            return new TransmitterRuntime(Optional.empty(), speed, Math.max(availableStress, 0), poweredDisabled, remoteLoop);
+                                      boolean poweredDisabled, boolean remoteLoop, LinkAnchor visualAnchor) {
+        static TransmitterRuntime active(float speed, int availableStress, boolean poweredDisabled,
+                                         boolean remoteLoop, LinkAnchor visualAnchor) {
+            return new TransmitterRuntime(Optional.empty(), speed, Math.max(availableStress, 0),
+                poweredDisabled, remoteLoop, visualAnchor);
         }
 
         static TransmitterRuntime failure(ReceiverStatus status) {
-            return new TransmitterRuntime(Optional.of(status), 0.0F, 0, false, false);
+            return new TransmitterRuntime(Optional.of(status), 0.0F, 0, false, false, null);
         }
     }
 

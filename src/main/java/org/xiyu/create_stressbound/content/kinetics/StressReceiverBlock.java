@@ -4,11 +4,14 @@ import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock;
 import com.simibubi.create.foundation.block.IBE;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
 import org.xiyu.create_stressbound.registry.StressboundBlockEntities;
 
 public class StressReceiverBlock extends DirectionalKineticBlock implements IBE<StressReceiverBlockEntity> {
@@ -47,5 +50,18 @@ public class StressReceiverBlock extends DirectionalKineticBlock implements IBE<
             IBE.onRemove(state, level, pos, newState);
         }
         super.onRemove(state, level, pos, newState, isMoving);
+    }
+
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
+                                               Player player, BlockHitResult hitResult) {
+        if (!player.getMainHandItem().isEmpty()) {
+            return InteractionResult.PASS;
+        }
+        if (level.isClientSide) {
+            return InteractionResult.SUCCESS;
+        }
+        withBlockEntityDo(level, pos, be -> player.openMenu(be, pos));
+        return InteractionResult.SUCCESS;
     }
 }

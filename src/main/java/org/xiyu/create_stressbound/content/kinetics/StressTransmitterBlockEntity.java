@@ -2,16 +2,22 @@ package org.xiyu.create_stressbound.content.kinetics;
 
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.motor.CreativeMotorBlockEntity;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.LongTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.state.BlockState;
 import org.xiyu.create_stressbound.StressboundConfig;
 import org.xiyu.create_stressbound.content.link.LinkAnchor;
+import org.xiyu.create_stressbound.content.link.StressLinkSavedData;
 import org.xiyu.create_stressbound.content.link.StressLinkService;
 import org.xiyu.create_stressbound.registry.StressboundBlockEntities;
 
@@ -25,6 +31,9 @@ public class StressTransmitterBlockEntity extends KineticBlockEntity {
 
     private UUID endpointId;
 
+    // Client-synced receiver positions for visual rendering
+    private List<BlockPos> linkedReceiverPositions = Collections.emptyList();
+
     public StressTransmitterBlockEntity(BlockPos pos, BlockState blockState) {
         super(StressboundBlockEntities.STRESS_TRANSMITTER.get(), pos, blockState);
     }
@@ -35,6 +44,7 @@ public class StressTransmitterBlockEntity extends KineticBlockEntity {
         endpointId = endpointId == null ? UUID.randomUUID() : endpointId;
         if (level instanceof net.minecraft.server.level.ServerLevel) {
             StressLinkService.refreshTransmitterAnchor(this);
+            refreshLinkedReceiverPositions();
         }
     }
 
@@ -72,6 +82,37 @@ public class StressTransmitterBlockEntity extends KineticBlockEntity {
     public boolean isRemoteLoopSource() {
         return hasNetwork() && getOrCreateNetwork().members.keySet().stream()
             .anyMatch(blockEntity -> blockEntity != this && blockEntity instanceof StressReceiverBlockEntity);
+    }
+
+    public List<BlockPos> getLinkedReceiverPositions() {
+        return linkedReceiverPositions;
+    }
+
+    public void refreshLinkedReceiverVisuals() {
+        if (level == null || level.isClientSide) {
+            return;
+        }
+        refreshLinkedReceiverPositions();
+        setChanged();
+        sendData();
+    }
+
+    private void refreshLinkedReceiverPositions() {
+        if (!(level instanceof net.minecraft.server.level.ServerLevel serverLevel)) {
+            linkedReceiverPositions = Collections.emptyList();
+            return;
+        }
+        LinkAnchor anchor = createAnchor();
+        List<org.xiyu.create_stressbound.content.link.StressLinkRecord> records =
+            StressLinkSavedData.get(serverLevel.getServer()).findByTransmitter(anchor);
+        List<BlockPos> positions = new ArrayList<>();
+        for (org.xiyu.create_stressbound.content.link.StressLinkRecord record : records) {
+            if (record.receiver().isStaticBlock()
+                && record.receiver().dimensionKey().equals(level.dimension())) {
+                positions.add(record.receiver().pos());
+            }
+        }
+        linkedReceiverPositions = Collections.unmodifiableList(positions);
     }
 
     @Override
@@ -153,6 +194,14 @@ public class StressTransmitterBlockEntity extends KineticBlockEntity {
         return Math.max(Math.round(getAvailableStressUnits()), 0);
     }
 
+    public float getNetworkStress() {
+        return stress;
+    }
+
+    public float getNetworkCapacity() {
+        return capacity;
+    }
+
     private boolean hasCreativeSource() {
         return hasNetwork() && getOrCreateNetwork().sources.keySet().stream()
             .anyMatch(CreativeMotorBlockEntity.class::isInstance);
@@ -182,11 +231,31 @@ public class StressTransmitterBlockEntity extends KineticBlockEntity {
         tag.putInt(LATCHED_AVAILABLE_STRESS_KEY, getControlledAvailableStressBudget());
         tag.putBoolean(LATCHED_POWERED_DISABLED_KEY, isPoweredDisabled());
         tag.putBoolean(LATCHED_REMOTE_LOOP_KEY, isRemoteLoopSource());
+
+        if (clientPacket) {
+            ListTag posList = new ListTag();
+            for (BlockPos pos : linkedReceiverPositions) {
+                posList.add(LongTag.valueOf(pos.asLong()));
+            }
+            tag.put("LinkedReceivers", posList);
+        }
     }
 
     @Override
     protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
         super.read(tag, registries, clientPacket);
         endpointId = tag.hasUUID(ENDPOINT_ID_KEY) ? tag.getUUID(ENDPOINT_ID_KEY) : endpointId;
+
+        // Read linked receiver positions
+        if (tag.contains("LinkedReceivers", Tag.TAG_LIST)) {
+            ListTag posList = tag.getList("LinkedReceivers", Tag.TAG_LONG);
+            List<BlockPos> positions = new ArrayList<>(posList.size());
+            for (Tag t : posList) {
+                positions.add(BlockPos.of(((LongTag) t).getAsLong()));
+            }
+            linkedReceiverPositions = Collections.unmodifiableList(positions);
+        } else {
+            linkedReceiverPositions = Collections.emptyList();
+        }
     }
 }

@@ -2,6 +2,8 @@ package org.xiyu.create_stressbound.content.kinetics;
 
 import com.simibubi.create.content.kinetics.base.GeneratingKineticBlockEntity;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -9,18 +11,33 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import org.xiyu.create_stressbound.StressboundConfig;
+import org.xiyu.create_stressbound.content.link.LinkAnchor;
 import org.xiyu.create_stressbound.content.link.ReceiverStatus;
+import org.xiyu.create_stressbound.content.link.StressLinkSavedData;
+import org.xiyu.create_stressbound.content.link.StressLinkService;
 import org.xiyu.create_stressbound.registry.StressboundBlockEntities;
 
-public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity {
+public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity implements MenuProvider {
     public static final String ENDPOINT_ID_KEY = "EndpointId";
     private static final String LINK_ID_KEY = "LinkId";
     private static final String REQUESTED_STRESS_KEY = "RequestedStress";
     private static final String STATUS_KEY = "ReceiverStatus";
     private static final String TRANSMITTED_SPEED_KEY = "TransmittedSpeed";
     private static final String GRANTED_STRESS_KEY = "GrantedStress";
+    private static final String REVERSE_OUTPUT_KEY = "ReverseOutput";
+    private static final String TRANSMITTER_POS_KEY = "TransmitterPos";
+    private static final String TRANSMITTER_DIM_KEY = "TransmitterDim";
+    private static final String TRANSMITTER_ENDPOINT_KEY = "TransmitterEndpoint";
+    private static final String TRANSMITTER_MOVING_KEY = "TransmitterMoving";
 
     private UUID endpointId;
     private UUID linkId;
@@ -28,6 +45,13 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity {
     private float transmittedSpeed;
     private int grantedStress;
     private ReceiverStatus status = ReceiverStatus.IDLE;
+    private boolean reverseOutput = false;
+
+    // Client-synced transmitter position for visual rendering
+    private BlockPos transmitterPos = BlockPos.ZERO;
+    private ResourceKey<Level> transmitterDimension;
+    private UUID transmitterEndpointId;
+    private boolean transmitterMoving;
 
     public StressReceiverBlockEntity(BlockPos pos, BlockState blockState) {
         super(StressboundBlockEntities.STRESS_RECEIVER.get(), pos, blockState);
@@ -55,8 +79,9 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity {
         if (transmittedSpeed == 0.0F) {
             return 0.0F;
         }
+        float speed = reverseOutput ? -transmittedSpeed : transmittedSpeed;
         Direction facing = getBlockState().getValue(StressReceiverBlock.FACING);
-        return convertToDirection(transmittedSpeed, facing);
+        return convertToDirection(speed, facing);
     }
 
     @Override
@@ -111,12 +136,23 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity {
     }
 
     public void applyRuntime(UUID runtimeLinkId, float runtimeSpeed, int runtimeGrantedStress, ReceiverStatus runtimeStatus) {
+        applyRuntime(runtimeLinkId, runtimeSpeed, runtimeGrantedStress, runtimeStatus, null);
+    }
+
+    public void applyRuntime(UUID runtimeLinkId, float runtimeSpeed, int runtimeGrantedStress,
+                             ReceiverStatus runtimeStatus, LinkAnchor transmitterVisualAnchor) {
         UUID nextLinkId = runtimeLinkId != null ? runtimeLinkId : linkId;
         boolean changed = transmittedSpeed != runtimeSpeed || grantedStress != runtimeGrantedStress || status != runtimeStatus;
         linkId = nextLinkId;
         transmittedSpeed = runtimeSpeed;
         grantedStress = runtimeGrantedStress;
         status = runtimeStatus;
+
+        if (level != null && !level.isClientSide) {
+            changed |= transmitterVisualAnchor == null
+                ? refreshTransmitterVisualInfo()
+                : setTransmitterVisualInfo(transmitterVisualAnchor);
+        }
 
         if (changed && level != null && !level.isClientSide) {
             updateGeneratedRotation();
@@ -206,6 +242,91 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity {
         return getRedstoneSignal() >= 15;
     }
 
+    public boolean isReverseOutput() {
+        return reverseOutput;
+    }
+
+    public void setReverseOutput(boolean reverseOutput) {
+        if (this.reverseOutput != reverseOutput) {
+            this.reverseOutput = reverseOutput;
+            if (level != null && !level.isClientSide) {
+                updateGeneratedRotation();
+                setChanged();
+                sendData();
+            }
+        }
+    }
+
+    public void toggleReverseOutput() {
+        setReverseOutput(!reverseOutput);
+    }
+
+    @Override
+    public Component getDisplayName() {
+        return Component.translatable("gui.create_stressbound.receiver.title");
+    }
+
+    @Override
+    public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+        return new org.xiyu.create_stressbound.client.gui.ReceiverMenu(containerId, playerInventory, worldPosition);
+    }
+
+    private boolean refreshTransmitterVisualInfo() {
+        if (!(level instanceof net.minecraft.server.level.ServerLevel serverLevel) || linkId == null) {
+            return clearTransmitterVisualInfo();
+        }
+        Optional<org.xiyu.create_stressbound.content.link.StressLinkRecord> record =
+            StressLinkSavedData.get(serverLevel.getServer()).get(linkId);
+        if (record.isEmpty()) {
+            return clearTransmitterVisualInfo();
+        }
+        return setTransmitterVisualInfo(record.get().transmitter());
+    }
+
+    private boolean setTransmitterVisualInfo(LinkAnchor tx) {
+        BlockPos nextPos = tx.pos();
+        ResourceKey<Level> nextDimension = tx.dimensionKey();
+        UUID nextEndpointId = tx.endpointId().orElse(null);
+        boolean nextMoving = !tx.isStaticBlock();
+        boolean changed = !Objects.equals(transmitterPos, nextPos)
+            || !Objects.equals(transmitterDimension, nextDimension)
+            || !Objects.equals(transmitterEndpointId, nextEndpointId)
+            || transmitterMoving != nextMoving;
+        transmitterPos = nextPos;
+        transmitterDimension = nextDimension;
+        transmitterEndpointId = nextEndpointId;
+        transmitterMoving = nextMoving;
+        return changed;
+    }
+
+    private boolean clearTransmitterVisualInfo() {
+        boolean changed = !BlockPos.ZERO.equals(transmitterPos)
+            || transmitterDimension != null
+            || transmitterEndpointId != null
+            || transmitterMoving;
+        transmitterPos = BlockPos.ZERO;
+        transmitterDimension = null;
+        transmitterEndpointId = null;
+        transmitterMoving = false;
+        return changed;
+    }
+
+    public BlockPos getTransmitterPos() {
+        return transmitterPos;
+    }
+
+    public ResourceKey<Level> getTransmitterDimension() {
+        return transmitterDimension;
+    }
+
+    public UUID getTransmitterEndpointId() {
+        return transmitterEndpointId;
+    }
+
+    public boolean isTransmitterMoving() {
+        return transmitterMoving;
+    }
+
     @Override
     protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
         super.write(tag, registries, clientPacket);
@@ -217,6 +338,18 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity {
         tag.putString(STATUS_KEY, status.name());
         tag.putFloat(TRANSMITTED_SPEED_KEY, transmittedSpeed);
         tag.putInt(GRANTED_STRESS_KEY, grantedStress);
+        tag.putBoolean(REVERSE_OUTPUT_KEY, reverseOutput);
+
+        if (clientPacket && transmitterPos != null && !transmitterPos.equals(BlockPos.ZERO)) {
+            tag.putLong(TRANSMITTER_POS_KEY, transmitterPos.asLong());
+            if (transmitterDimension != null) {
+                tag.putString(TRANSMITTER_DIM_KEY, transmitterDimension.location().toString());
+            }
+            if (transmitterEndpointId != null) {
+                tag.putUUID(TRANSMITTER_ENDPOINT_KEY, transmitterEndpointId);
+            }
+            tag.putBoolean(TRANSMITTER_MOVING_KEY, transmitterMoving);
+        }
     }
 
     @Override
@@ -227,8 +360,42 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity {
         requestedStress = tag.contains(REQUESTED_STRESS_KEY)
             ? tag.getInt(REQUESTED_STRESS_KEY)
             : (StressboundConfig.defaultRequestedStress > 0 ? StressboundConfig.defaultRequestedStress : 256);
-        status = tag.contains(STATUS_KEY) ? ReceiverStatus.valueOf(tag.getString(STATUS_KEY)) : ReceiverStatus.IDLE;
+        status = parseStatus(tag);
         transmittedSpeed = tag.getFloat(TRANSMITTED_SPEED_KEY);
         grantedStress = tag.getInt(GRANTED_STRESS_KEY);
+        reverseOutput = tag.getBoolean(REVERSE_OUTPUT_KEY);
+
+        if (tag.contains(TRANSMITTER_POS_KEY)) {
+            transmitterPos = BlockPos.of(tag.getLong(TRANSMITTER_POS_KEY));
+        } else {
+            transmitterPos = BlockPos.ZERO;
+        }
+        transmitterDimension = parseTransmitterDimension(tag);
+        transmitterEndpointId = tag.hasUUID(TRANSMITTER_ENDPOINT_KEY) ? tag.getUUID(TRANSMITTER_ENDPOINT_KEY) : null;
+        transmitterMoving = tag.getBoolean(TRANSMITTER_MOVING_KEY);
+    }
+
+    private static ReceiverStatus parseStatus(CompoundTag tag) {
+        if (!tag.contains(STATUS_KEY)) {
+            return ReceiverStatus.IDLE;
+        }
+        try {
+            return ReceiverStatus.valueOf(tag.getString(STATUS_KEY));
+        } catch (IllegalArgumentException ignored) {
+            return ReceiverStatus.IDLE;
+        }
+    }
+
+    private static ResourceKey<Level> parseTransmitterDimension(CompoundTag tag) {
+        if (!tag.contains(TRANSMITTER_DIM_KEY)) {
+            return null;
+        }
+        try {
+            return ResourceKey.create(
+                net.minecraft.core.registries.Registries.DIMENSION,
+                ResourceLocation.parse(tag.getString(TRANSMITTER_DIM_KEY)));
+        } catch (RuntimeException ignored) {
+            return null;
+        }
     }
 }

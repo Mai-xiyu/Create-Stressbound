@@ -78,5 +78,22 @@
   "create_stressbound.ponder.stressbound_tumbler.text_8": "四盏红石灯贴在接收端链接旁，显示每一侧当前收到的停止信号。",
   "create_stressbound.ponder.stressbound_tumbler.text_9": "当东侧下沉时，西侧传感输出较低，因此东侧接收端保持高速输出。",
   "create_stressbound.ponder.stressbound_tumbler.text_10": "高侧会收到更强的对侧信号而降速，由此形成把本体推回水平的力矩。",
-  "create_stressbound.ponder.stressbound_tumbler.text_11": "使用 /place template create_stressbound:stressbound/tumbler 即可放置整套模板。"
+  "create_stressbound.ponder.stressbound_tumbler.text_11": "使用 /place template create_stressbound:stressbound/tumbler 即可放置整套模板。",
+  "gui.create_stressbound.receiver.title": "应力接收端",
+  "gui.create_stressbound.receiver.reverse": "反向输出：%s",
+  "gui.create_stressbound.receiver.reverse.tooltip": "无需重新绑定链路，直接翻转接收端转轴方向。",
+  "gui.create_stressbound.receiver.reverse.on": "开启",
+  "gui.create_stressbound.receiver.reverse.off": "关闭",
+  "gui.create_stressbound.receiver.direction": "输出方向",
+  "gui.create_stressbound.receiver.direction.clockwise": "顺时针",
+  "gui.create_stressbound.receiver.direction.counterclockwise": "逆时针",
+  "hud.create_stressbound.title": "Create Stressbound",
+  "hud.create_stressbound.status": "状态",
+  "hud.create_stressbound.speed": "远程转速",
+  "hud.create_stressbound.budget": "远程预算",
+  "hud.create_stressbound.requested": "预留预算",
+  "hud.create_stressbound.redstone": "红石",
+  "hud.create_stressbound.target": "发送端",
+  "hud.create_stressbound.target.moving": "移动结构",
+  "hud.create_stressbound.unlinked": "未保存链路"
 }

@@ -6,8 +6,13 @@ import dev.engine_room.flywheel.lib.visualization.SimpleBlockEntityVisualizer;
 import net.createmod.ponder.foundation.PonderIndex;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import org.xiyu.create_stressbound.client.gui.ReceiverScreen;
+import org.xiyu.create_stressbound.client.visual.StressLinkParticleRenderer;
 import org.xiyu.create_stressbound.ponder.StressboundPonderPlugin;
 import org.xiyu.create_stressbound.registry.StressboundBlockEntities;
+import org.xiyu.create_stressbound.registry.StressboundMenuTypes;
 
 public final class StressboundClient {
     private StressboundClient() {
@@ -18,11 +23,18 @@ public final class StressboundClient {
             PonderIndex.addPlugin(new StressboundPonderPlugin());
             registerVisualizers();
         });
+
+        // Register particle renderer on the game event bus
+        NeoForge.EVENT_BUS.addListener(StressLinkParticleRenderer::onRenderLevelStage);
     }
 
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(StressboundBlockEntities.STRESS_TRANSMITTER.get(), ShaftRenderer::new);
         event.registerBlockEntityRenderer(StressboundBlockEntities.STRESS_RECEIVER.get(), ShaftRenderer::new);
+    }
+
+    public static void registerMenuScreens(RegisterMenuScreensEvent event) {
+        event.register(StressboundMenuTypes.RECEIVER.get(), ReceiverScreen::new);
     }
 
     private static void registerVisualizers() {
