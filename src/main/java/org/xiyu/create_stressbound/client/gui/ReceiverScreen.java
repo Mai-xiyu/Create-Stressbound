@@ -7,9 +7,11 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.xiyu.create_stressbound.CreateStressbound;
 import org.xiyu.create_stressbound.content.kinetics.StressReceiverBlockEntity;
 import org.xiyu.create_stressbound.content.link.ReceiverStatus;
 import org.xiyu.create_stressbound.network.ReverseTogglePacket;
@@ -33,16 +35,18 @@ public class ReceiverScreen extends AbstractContainerScreen<ReceiverMenu> {
     private static final int PANEL_H = 164;
     private static final int PAD = 8;
     private static final int LINE_H = 12;
-    private static final int ICON_BUTTON_SIZE = 26;
+    private static final int ICON_BUTTON_SIZE = 18;
     private static final int BUTTON_SHADOW = 0xAA_000000;
     private static final int BUTTON_DARK = 0xFF_4A2D10;
     private static final int BUTTON_BORDER = 0xFF_D48A25;
     private static final int BUTTON_HOVER_BORDER = 0xFF_FFE08A;
     private static final int BUTTON_INNER_BORDER = 0xFF_8B561E;
     private static final int BUTTON_FILL = 0xFF_D69A4A;
-    private static final int BUTTON_FILL_ALT = 0xFF_E5B76C;
     private static final int BUTTON_FILL_HOVER = 0xFF_E4AB55;
-    private static final int BUTTON_ICON = 0xFF_4A2808;
+    private static final ResourceLocation CLOCKWISE_ICON =
+        CreateStressbound.id("textures/gui/rotation_clockwise.png");
+    private static final ResourceLocation COUNTERCLOCKWISE_ICON =
+        CreateStressbound.id("textures/gui/rotation_counterclockwise.png");
 
     private final BlockPos blockPos;
     private DirectionIconButton reverseButton;
@@ -248,55 +252,19 @@ public class ReceiverScreen extends AbstractContainerScreen<ReceiverMenu> {
             int border = highlighted ? BUTTON_HOVER_BORDER : BUTTON_BORDER;
             int fill = highlighted ? BUTTON_FILL_HOVER : BUTTON_FILL;
 
-            g.fill(x + 2, y + 2, x + width + 2, y + height + 2, BUTTON_SHADOW);
+            g.fill(x + 1, y + 1, x + width + 1, y + height + 1, BUTTON_SHADOW);
             g.fill(x, y, x + width, y + height, BUTTON_DARK);
             g.fill(x + 1, y + 1, x + width - 1, y + height - 1, border);
-            g.fill(x + 3, y + 3, x + width - 3, y + height - 3, BUTTON_INNER_BORDER);
-            g.fill(x + 4, y + 4, x + width - 4, y + height - 4, fill);
-
-            for (int py = y + 5; py < y + height - 5; py += 4) {
-                for (int px = x + 5; px < x + width - 5; px += 4) {
-                    if (((px + py) / 4) % 2 == 0) {
-                        g.fill(px, py, Math.min(px + 2, x + width - 5), Math.min(py + 2, y + height - 5), BUTTON_FILL_ALT);
-                    }
-                }
-            }
-
-            g.fill(x + 5, y + 5, x + width - 5, y + 6, 0x77_FFFFFF);
-            g.fill(x + 5, y + 5, x + 6, y + height - 5, 0x55_FFFFFF);
-            g.fill(x + 5, y + height - 6, x + width - 5, y + height - 5, 0x55_3A1D08);
-            g.fill(x + width - 6, y + 5, x + width - 5, y + height - 5, 0x77_3A1D08);
+            g.fill(x + 2, y + 2, x + width - 2, y + height - 2, BUTTON_INNER_BORDER);
+            g.fill(x + 3, y + 3, x + width - 3, y + height - 3, fill);
+            g.fill(x + 4, y + 4, x + width - 4, y + 5, 0x88_FFFFFF);
+            g.fill(x + 4, y + height - 5, x + width - 4, y + height - 4, 0x66_3A1D08);
             drawIcon(g, x, y, width, height);
         }
 
         private void drawIcon(GuiGraphics g, int x, int y, int width, int height) {
-            if (reversed) {
-                drawCounterClockwiseIcon(g, x, y);
-            } else {
-                drawClockwiseIcon(g, x, y);
-            }
-        }
-
-        private void drawClockwiseIcon(GuiGraphics g, int x, int y) {
-            g.fill(x + 8, y + 8, x + 14, y + 10, BUTTON_ICON);
-            g.fill(x + 13, y + 10, x + 16, y + 12, BUTTON_ICON);
-            g.fill(x + 16, y + 12, x + 18, y + 17, BUTTON_ICON);
-            g.fill(x + 10, y + 17, x + 17, y + 19, BUTTON_ICON);
-            g.fill(x + 8, y + 15, x + 11, y + 17, BUTTON_ICON);
-            g.fill(x + 7, y + 13, x + 10, y + 15, BUTTON_ICON);
-            g.fill(x + 13, y + 18, x + 16, y + 21, BUTTON_ICON);
-            g.fill(x + 16, y + 16, x + 19, y + 19, BUTTON_ICON);
-        }
-
-        private void drawCounterClockwiseIcon(GuiGraphics g, int x, int y) {
-            g.fill(x + 12, y + 8, x + 18, y + 10, BUTTON_ICON);
-            g.fill(x + 10, y + 10, x + 13, y + 12, BUTTON_ICON);
-            g.fill(x + 8, y + 12, x + 10, y + 17, BUTTON_ICON);
-            g.fill(x + 9, y + 17, x + 16, y + 19, BUTTON_ICON);
-            g.fill(x + 15, y + 15, x + 18, y + 17, BUTTON_ICON);
-            g.fill(x + 16, y + 13, x + 19, y + 15, BUTTON_ICON);
-            g.fill(x + 10, y + 16, x + 13, y + 19, BUTTON_ICON);
-            g.fill(x + 7, y + 16, x + 10, y + 19, BUTTON_ICON);
+            ResourceLocation icon = reversed ? COUNTERCLOCKWISE_ICON : CLOCKWISE_ICON;
+            g.blit(icon, x + (width - 16) / 2, y + (height - 16) / 2, 0, 0, 16, 16, 16, 16);
         }
     }
 }

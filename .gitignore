@@ -14,7 +14,9 @@ run/
 logs/
 crash-reports/
 *.log
-/assets/
+/assets/*
+!/assets/blockbench/
+!/assets/blockbench/*.bbmodel
 
 # Local notes and scratch files
 a.md

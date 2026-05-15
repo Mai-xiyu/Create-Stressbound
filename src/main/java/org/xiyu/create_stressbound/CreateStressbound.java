@@ -15,12 +15,14 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import org.slf4j.Logger;
 import org.xiyu.create_stressbound.client.StressboundClient;
+import org.xiyu.create_stressbound.client.StressboundClientConfig;
 import org.xiyu.create_stressbound.command.StressboundCommands;
 import org.xiyu.create_stressbound.compat.MovingStructureSupport;
 import org.xiyu.create_stressbound.content.link.EndpointRole;
 import org.xiyu.create_stressbound.content.link.MovingEndpointMovementBehaviour;
 import org.xiyu.create_stressbound.content.link.StressLinkService;
 import org.xiyu.create_stressbound.network.ReverseTogglePacket;
+import org.xiyu.create_stressbound.network.SetLinkColorPacket;
 import org.xiyu.create_stressbound.registry.StressboundBlockEntities;
 import org.xiyu.create_stressbound.registry.StressboundBlocks;
 import org.xiyu.create_stressbound.registry.StressboundCreativeTabs;
@@ -45,6 +47,7 @@ public final class CreateStressbound {
             modEventBus.addListener(StressboundClient::clientSetup);
             modEventBus.addListener(StressboundClient::registerRenderers);
             modEventBus.addListener(StressboundClient::registerMenuScreens);
+            modContainer.registerConfig(ModConfig.Type.CLIENT, StressboundClientConfig.SPEC);
         }
         modContainer.registerConfig(ModConfig.Type.COMMON, StressboundConfig.SPEC);
 
@@ -64,6 +67,11 @@ public final class CreateStressbound {
             ReverseTogglePacket.TYPE,
             ReverseTogglePacket.CODEC,
             ReverseTogglePacket::handle
+        );
+        registrar.playToServer(
+            SetLinkColorPacket.TYPE,
+            SetLinkColorPacket.CODEC,
+            SetLinkColorPacket::handle
         );
     }
 

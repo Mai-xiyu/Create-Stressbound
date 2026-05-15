@@ -38,6 +38,7 @@ public final class StressLinkSavedData extends SavedData {
             StressLinkRecord record = StressLinkRecord.load((CompoundTag) linkTag);
             data.links.put(record.id(), record);
         }
+        data.ensureTransmitterColors();
         data.rebuildIndexes();
         return data;
     }
@@ -126,6 +127,37 @@ public final class StressLinkSavedData extends SavedData {
             receiverIndex.put(record.receiver().key(), record.id());
             transmitterIndex.computeIfAbsent(record.transmitter().key(), ignored -> new ArrayList<>()).add(record.id());
             ownerCounts.merge(record.owner(), 1, Integer::sum);
+        }
+    }
+
+    private void ensureTransmitterColors() {
+        Map<String, List<StressLinkRecord>> grouped = new LinkedHashMap<>();
+        for (StressLinkRecord record : links.values()) {
+            grouped.computeIfAbsent(record.transmitter().key(), ignored -> new ArrayList<>()).add(record);
+        }
+
+        boolean changed = false;
+        java.util.Set<Integer> usedTransmitterColors = new java.util.LinkedHashSet<>();
+        for (List<StressLinkRecord> records : grouped.values()) {
+            int groupColor = StressLinkColors.transmitterColor(records);
+            if (!StressLinkColors.isAssigned(groupColor) || usedTransmitterColors.contains(StressLinkColors.normalize(groupColor))) {
+                groupColor = StressLinkColors.nextAvailable(usedTransmitterColors);
+                changed = true;
+            }
+            groupColor = StressLinkColors.normalize(groupColor);
+            usedTransmitterColors.add(groupColor);
+
+            for (StressLinkRecord record : records) {
+                if (!StressLinkColors.isAssigned(record.color())
+                    || StressLinkColors.normalize(record.color()) != groupColor) {
+                    links.put(record.id(), record.withColor(groupColor));
+                    changed = true;
+                }
+            }
+        }
+
+        if (changed) {
+            setDirty();
         }
     }
 }

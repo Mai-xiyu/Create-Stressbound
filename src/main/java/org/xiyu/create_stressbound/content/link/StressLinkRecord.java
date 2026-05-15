@@ -10,6 +10,7 @@ public final class StressLinkRecord {
     private static final String TRANSMITTER_KEY = "Transmitter";
     private static final String RECEIVER_KEY = "Receiver";
     private static final String REQUESTED_STRESS_KEY = "RequestedStress";
+    private static final String COLOR_KEY = "Color";
     private static final String CREATED_AT_KEY = "CreatedAt";
 
     private final UUID id;
@@ -17,14 +18,17 @@ public final class StressLinkRecord {
     private final LinkAnchor transmitter;
     private final LinkAnchor receiver;
     private final int requestedStress;
+    private final int color;
     private final long createdAt;
 
-    public StressLinkRecord(UUID id, UUID owner, LinkAnchor transmitter, LinkAnchor receiver, int requestedStress, long createdAt) {
+    public StressLinkRecord(UUID id, UUID owner, LinkAnchor transmitter, LinkAnchor receiver,
+                            int requestedStress, int color, long createdAt) {
         this.id = id;
         this.owner = owner;
         this.transmitter = transmitter;
         this.receiver = receiver;
         this.requestedStress = requestedStress;
+        this.color = color;
         this.createdAt = createdAt;
     }
 
@@ -35,6 +39,7 @@ public final class StressLinkRecord {
             LinkAnchor.load(tag.getCompound(TRANSMITTER_KEY)),
             LinkAnchor.load(tag.getCompound(RECEIVER_KEY)),
             tag.getInt(REQUESTED_STRESS_KEY),
+            tag.contains(COLOR_KEY) ? tag.getInt(COLOR_KEY) : StressLinkColors.UNASSIGNED,
             tag.getLong(CREATED_AT_KEY)
         );
     }
@@ -46,6 +51,7 @@ public final class StressLinkRecord {
         tag.put(TRANSMITTER_KEY, transmitter.save());
         tag.put(RECEIVER_KEY, receiver.save());
         tag.putInt(REQUESTED_STRESS_KEY, requestedStress);
+        tag.putInt(COLOR_KEY, StressLinkColors.normalize(color));
         tag.putLong(CREATED_AT_KEY, createdAt);
         return tag;
     }
@@ -70,20 +76,29 @@ public final class StressLinkRecord {
         return requestedStress;
     }
 
+    public int color() {
+        return color;
+    }
+
     public long createdAt() {
         return createdAt;
     }
 
     public StressLinkRecord withRequestedStress(int newRequestedStress) {
-        return new StressLinkRecord(id, owner, transmitter, receiver, newRequestedStress, createdAt);
+        return new StressLinkRecord(id, owner, transmitter, receiver, newRequestedStress, color, createdAt);
+    }
+
+    public StressLinkRecord withColor(int newColor) {
+        return new StressLinkRecord(id, owner, transmitter, receiver, requestedStress,
+            StressLinkColors.normalize(newColor), createdAt);
     }
 
     public StressLinkRecord withTransmitter(LinkAnchor newTransmitter) {
-        return new StressLinkRecord(id, owner, newTransmitter, receiver, requestedStress, createdAt);
+        return new StressLinkRecord(id, owner, newTransmitter, receiver, requestedStress, color, createdAt);
     }
 
     public StressLinkRecord withReceiver(LinkAnchor newReceiver) {
-        return new StressLinkRecord(id, owner, transmitter, newReceiver, requestedStress, createdAt);
+        return new StressLinkRecord(id, owner, transmitter, newReceiver, requestedStress, color, createdAt);
     }
 
     @Override
@@ -95,6 +110,7 @@ public final class StressLinkRecord {
             return false;
         }
         return requestedStress == that.requestedStress
+            && color == that.color
             && createdAt == that.createdAt
             && Objects.equals(id, that.id)
             && Objects.equals(owner, that.owner)
@@ -104,6 +120,6 @@ public final class StressLinkRecord {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, owner, transmitter, receiver, requestedStress, createdAt);
+        return Objects.hash(id, owner, transmitter, receiver, requestedStress, color, createdAt);
     }
 }

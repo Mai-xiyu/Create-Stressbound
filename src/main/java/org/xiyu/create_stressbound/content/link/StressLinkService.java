@@ -89,6 +89,11 @@ public final class StressLinkService {
             data.removeByReceiver(receiverAnchor);
         }
 
+        List<StressLinkRecord> transmitterRecords = data.findByTransmitter(transmitterAnchor);
+        int color = StressLinkColors.transmitterColor(transmitterRecords);
+        if (!StressLinkColors.isAssigned(color)) {
+            color = StressLinkColors.nextTransmitterColor(data.all());
+        }
         int requestedStress = receiver.getRequestedStress();
         StressLinkRecord record = new StressLinkRecord(
             UUID.randomUUID(),
@@ -96,6 +101,7 @@ public final class StressLinkService {
             transmitterAnchor,
             receiverAnchor,
             requestedStress,
+            color,
             receiver.getLevel().getGameTime()
         );
         data.put(record);
@@ -207,7 +213,52 @@ public final class StressLinkService {
         StressLinkRecord updated = existing.get().withRequestedStress(clampedStress);
         data.put(updated);
         getStaticReceiver(server, updated.receiver()).ifPresent(receiver -> receiver.setRequestedStress(clampedStress));
+        getStaticTransmitter(server, updated.transmitter()).ifPresent(StressTransmitterBlockEntity::refreshLinkedReceiverVisuals);
         return Optional.of(updated);
+    }
+
+    public static ColorUpdateResult setLinkColor(MinecraftServer server, UUID linkId, int color) {
+        StressLinkSavedData data = StressLinkSavedData.get(server);
+        Optional<StressLinkRecord> existing = data.get(linkId);
+        if (existing.isEmpty()) {
+            return ColorUpdateResult.notFound();
+        }
+
+        StressLinkRecord record = existing.get();
+        int normalized = StressLinkColors.normalize(color);
+        if (StressLinkColors.isUsedByOtherTransmitter(data.all(), record.transmitter(), normalized)) {
+            return ColorUpdateResult.duplicate(record);
+        }
+
+        List<StressLinkRecord> updated = setTransmitterGroupColor(data, record.transmitter(), normalized);
+        refreshTransmitterGroupVisuals(server, record.transmitter(), updated);
+        return ColorUpdateResult.updated(updated.isEmpty() ? record : updated.getFirst());
+    }
+
+    public static ColorUpdateResult assignNextLinkColor(MinecraftServer server, UUID linkId) {
+        StressLinkSavedData data = StressLinkSavedData.get(server);
+        Optional<StressLinkRecord> existing = data.get(linkId);
+        if (existing.isEmpty()) {
+            return ColorUpdateResult.notFound();
+        }
+
+        StressLinkRecord record = existing.get();
+        java.util.Set<Integer> used = new java.util.LinkedHashSet<>();
+        java.util.Set<String> seenTransmitters = new java.util.LinkedHashSet<>();
+        for (StressLinkRecord link : data.all()) {
+            String transmitterKey = link.transmitter().key();
+            if (transmitterKey.equals(record.transmitter().key()) || !seenTransmitters.add(transmitterKey)) {
+                continue;
+            }
+            if (StressLinkColors.isAssigned(link.color())) {
+                used.add(StressLinkColors.normalize(link.color()));
+            }
+        }
+
+        int color = StressLinkColors.nextAvailableAfter(used, record.color());
+        List<StressLinkRecord> updated = setTransmitterGroupColor(data, record.transmitter(), color);
+        refreshTransmitterGroupVisuals(server, record.transmitter(), updated);
+        return ColorUpdateResult.updated(updated.isEmpty() ? record : updated.getFirst());
     }
 
     public static int setAllRequestedStress(MinecraftServer server, int requestedStress) {
@@ -217,6 +268,23 @@ public final class StressLinkService {
             .toList();
         ids.forEach(id -> setRequestedStress(server, id, requestedStress));
         return ids.size();
+    }
+
+    private static List<StressLinkRecord> setTransmitterGroupColor(StressLinkSavedData data, LinkAnchor transmitter, int color) {
+        List<StressLinkRecord> updatedRecords = new ArrayList<>();
+        for (StressLinkRecord link : data.findByTransmitter(transmitter)) {
+            StressLinkRecord updated = link.withColor(color);
+            data.put(updated);
+            updatedRecords.add(updated);
+        }
+        return updatedRecords;
+    }
+
+    private static void refreshTransmitterGroupVisuals(MinecraftServer server, LinkAnchor transmitter, List<StressLinkRecord> records) {
+        for (StressLinkRecord record : records) {
+            getStaticReceiver(server, record.receiver()).ifPresent(StressReceiverBlockEntity::refreshClientLinkVisuals);
+        }
+        getStaticTransmitter(server, transmitter).ifPresent(StressTransmitterBlockEntity::refreshLinkedReceiverVisuals);
     }
 
     private static void evaluate(MinecraftServer server) {
@@ -445,6 +513,26 @@ public final class StressLinkService {
         public static BindResult failure(String message) {
             return new BindResult(false, Component.translatable(message).withStyle(ChatFormatting.RED));
         }
+    }
+
+    public record ColorUpdateResult(ColorUpdateStatus status, StressLinkRecord record) {
+        public static ColorUpdateResult updated(StressLinkRecord record) {
+            return new ColorUpdateResult(ColorUpdateStatus.UPDATED, record);
+        }
+
+        public static ColorUpdateResult duplicate(StressLinkRecord record) {
+            return new ColorUpdateResult(ColorUpdateStatus.DUPLICATE, record);
+        }
+
+        public static ColorUpdateResult notFound() {
+            return new ColorUpdateResult(ColorUpdateStatus.NOT_FOUND, null);
+        }
+    }
+
+    public enum ColorUpdateStatus {
+        UPDATED,
+        DUPLICATE,
+        NOT_FOUND
     }
 
     private record ActiveReceiver(StressLinkRecord record, StressReceiverBlockEntity receiver, int reservedStress) {

@@ -22,6 +22,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.xiyu.create_stressbound.StressboundConfig;
 import org.xiyu.create_stressbound.content.link.LinkAnchor;
 import org.xiyu.create_stressbound.content.link.ReceiverStatus;
+import org.xiyu.create_stressbound.content.link.StressLinkColors;
 import org.xiyu.create_stressbound.content.link.StressLinkSavedData;
 import org.xiyu.create_stressbound.content.link.StressLinkService;
 import org.xiyu.create_stressbound.registry.StressboundBlockEntities;
@@ -38,6 +39,7 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
     private static final String TRANSMITTER_DIM_KEY = "TransmitterDim";
     private static final String TRANSMITTER_ENDPOINT_KEY = "TransmitterEndpoint";
     private static final String TRANSMITTER_MOVING_KEY = "TransmitterMoving";
+    private static final String LINK_COLOR_KEY = "LinkColor";
 
     private UUID endpointId;
     private UUID linkId;
@@ -52,6 +54,7 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
     private ResourceKey<Level> transmitterDimension;
     private UUID transmitterEndpointId;
     private boolean transmitterMoving;
+    private int linkColor = StressLinkColors.DEFAULT;
 
     public StressReceiverBlockEntity(BlockPos pos, BlockState blockState) {
         super(StressboundBlockEntities.STRESS_RECEIVER.get(), pos, blockState);
@@ -152,6 +155,7 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
             changed |= transmitterVisualAnchor == null
                 ? refreshTransmitterVisualInfo()
                 : setTransmitterVisualInfo(transmitterVisualAnchor);
+            changed |= refreshLinkColor();
         }
 
         if (changed && level != null && !level.isClientSide) {
@@ -164,6 +168,7 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
     public void clearLink() {
         linkId = null;
         requestedStress = StressboundConfig.defaultRequestedStress > 0 ? StressboundConfig.defaultRequestedStress : 256;
+        linkColor = StressLinkColors.DEFAULT;
         applyRuntime(null, 0.0F, 0, ReceiverStatus.IDLE);
     }
 
@@ -219,6 +224,10 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
         return grantedStress;
     }
 
+    public int getLinkColor() {
+        return StressLinkColors.normalize(linkColor);
+    }
+
     public int getRedstoneSignal() {
         if (level == null || !StressboundConfig.receiverPoweredStops) {
             return 0;
@@ -271,6 +280,18 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
         return new org.xiyu.create_stressbound.client.gui.ReceiverMenu(containerId, playerInventory, worldPosition);
     }
 
+    public void refreshClientLinkVisuals() {
+        if (level == null || level.isClientSide) {
+            return;
+        }
+        boolean changed = refreshTransmitterVisualInfo();
+        changed |= refreshLinkColor();
+        if (changed) {
+            setChanged();
+            sendData();
+        }
+    }
+
     private boolean refreshTransmitterVisualInfo() {
         if (!(level instanceof net.minecraft.server.level.ServerLevel serverLevel) || linkId == null) {
             return clearTransmitterVisualInfo();
@@ -281,6 +302,21 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
             return clearTransmitterVisualInfo();
         }
         return setTransmitterVisualInfo(record.get().transmitter());
+    }
+
+    private boolean refreshLinkColor() {
+        if (!(level instanceof net.minecraft.server.level.ServerLevel serverLevel) || linkId == null) {
+            int previous = linkColor;
+            linkColor = StressLinkColors.DEFAULT;
+            return previous != linkColor;
+        }
+        Optional<org.xiyu.create_stressbound.content.link.StressLinkRecord> record =
+            StressLinkSavedData.get(serverLevel.getServer()).get(linkId);
+        int nextColor = record.map(value -> StressLinkColors.normalize(value.color()))
+            .orElse(StressLinkColors.DEFAULT);
+        boolean changed = linkColor != nextColor;
+        linkColor = nextColor;
+        return changed;
     }
 
     private boolean setTransmitterVisualInfo(LinkAnchor tx) {
@@ -350,6 +386,9 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
             }
             tag.putBoolean(TRANSMITTER_MOVING_KEY, transmitterMoving);
         }
+        if (clientPacket && linkId != null) {
+            tag.putInt(LINK_COLOR_KEY, getLinkColor());
+        }
     }
 
     @Override
@@ -373,6 +412,9 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
         transmitterDimension = parseTransmitterDimension(tag);
         transmitterEndpointId = tag.hasUUID(TRANSMITTER_ENDPOINT_KEY) ? tag.getUUID(TRANSMITTER_ENDPOINT_KEY) : null;
         transmitterMoving = tag.getBoolean(TRANSMITTER_MOVING_KEY);
+        linkColor = tag.contains(LINK_COLOR_KEY)
+            ? StressLinkColors.normalize(tag.getInt(LINK_COLOR_KEY))
+            : StressLinkColors.DEFAULT;
     }
 
     private static ReceiverStatus parseStatus(CompoundTag tag) {

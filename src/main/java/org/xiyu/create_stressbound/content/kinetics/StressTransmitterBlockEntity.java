@@ -14,14 +14,23 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.LongTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.xiyu.create_stressbound.StressboundConfig;
 import org.xiyu.create_stressbound.content.link.LinkAnchor;
+import org.xiyu.create_stressbound.content.link.ReceiverStatus;
+import org.xiyu.create_stressbound.content.link.StressLinkColors;
 import org.xiyu.create_stressbound.content.link.StressLinkSavedData;
 import org.xiyu.create_stressbound.content.link.StressLinkService;
 import org.xiyu.create_stressbound.registry.StressboundBlockEntities;
 
-public class StressTransmitterBlockEntity extends KineticBlockEntity {
+public class StressTransmitterBlockEntity extends KineticBlockEntity implements MenuProvider {
     private static final int CREATIVE_SOURCE_STRESS_BUDGET = Integer.MAX_VALUE / 4;
     public static final String ENDPOINT_ID_KEY = "EndpointId";
     public static final String LATCHED_SPEED_KEY = "LatchedSpeed";
@@ -33,6 +42,7 @@ public class StressTransmitterBlockEntity extends KineticBlockEntity {
 
     // Client-synced receiver positions for visual rendering
     private List<BlockPos> linkedReceiverPositions = Collections.emptyList();
+    private List<LinkedReceiverInfo> linkedReceiverInfos = Collections.emptyList();
 
     public StressTransmitterBlockEntity(BlockPos pos, BlockState blockState) {
         super(StressboundBlockEntities.STRESS_TRANSMITTER.get(), pos, blockState);
@@ -88,31 +98,50 @@ public class StressTransmitterBlockEntity extends KineticBlockEntity {
         return linkedReceiverPositions;
     }
 
+    public List<LinkedReceiverInfo> getLinkedReceiverInfos() {
+        return linkedReceiverInfos;
+    }
+
     public void refreshLinkedReceiverVisuals() {
         if (level == null || level.isClientSide) {
             return;
         }
-        refreshLinkedReceiverPositions();
+        refreshLinkedReceiverInfo();
         setChanged();
         sendData();
     }
 
     private void refreshLinkedReceiverPositions() {
+        refreshLinkedReceiverInfo();
+    }
+
+    private void refreshLinkedReceiverInfo() {
         if (!(level instanceof net.minecraft.server.level.ServerLevel serverLevel)) {
             linkedReceiverPositions = Collections.emptyList();
+            linkedReceiverInfos = Collections.emptyList();
             return;
         }
         LinkAnchor anchor = createAnchor();
         List<org.xiyu.create_stressbound.content.link.StressLinkRecord> records =
             StressLinkSavedData.get(serverLevel.getServer()).findByTransmitter(anchor);
         List<BlockPos> positions = new ArrayList<>();
+        List<LinkedReceiverInfo> infos = new ArrayList<>();
         for (org.xiyu.create_stressbound.content.link.StressLinkRecord record : records) {
-            if (record.receiver().isStaticBlock()
-                && record.receiver().dimensionKey().equals(level.dimension())) {
-                positions.add(record.receiver().pos());
+            LinkAnchor receiver = record.receiver();
+            if (receiver.dimensionKey().equals(level.dimension())) {
+                positions.add(receiver.pos());
             }
+            infos.add(new LinkedReceiverInfo(
+                record.id(),
+                receiver.pos(),
+                receiver.dimensionKey(),
+                record.requestedStress(),
+                StressLinkColors.normalize(record.color()),
+                resolveReceiverStatus(serverLevel.getServer(), receiver)
+            ));
         }
         linkedReceiverPositions = Collections.unmodifiableList(positions);
+        linkedReceiverInfos = Collections.unmodifiableList(infos);
     }
 
     @Override
@@ -165,6 +194,16 @@ public class StressTransmitterBlockEntity extends KineticBlockEntity {
 
     public LinkAnchor createAnchor() {
         return LinkAnchor.staticBlock(level.dimension(), worldPosition, getEndpointId());
+    }
+
+    @Override
+    public Component getDisplayName() {
+        return Component.translatable("gui.create_stressbound.transmitter.title");
+    }
+
+    @Override
+    public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
+        return new org.xiyu.create_stressbound.client.gui.TransmitterMenu(containerId, playerInventory, worldPosition);
     }
 
     public static UUID getEndpointIdFromTag(CompoundTag tag) {
@@ -238,6 +277,19 @@ public class StressTransmitterBlockEntity extends KineticBlockEntity {
                 posList.add(LongTag.valueOf(pos.asLong()));
             }
             tag.put("LinkedReceivers", posList);
+
+            ListTag infoList = new ListTag();
+            for (LinkedReceiverInfo info : linkedReceiverInfos) {
+                CompoundTag infoTag = new CompoundTag();
+                infoTag.putUUID("LinkId", info.linkId());
+                infoTag.putLong("Pos", info.receiverPos().asLong());
+                infoTag.putString("Dimension", info.dimension().location().toString());
+                infoTag.putInt("RequestedStress", info.requestedStress());
+                infoTag.putInt("Color", StressLinkColors.normalize(info.color()));
+                infoTag.putString("Status", info.status().name());
+                infoList.add(infoTag);
+            }
+            tag.put("LinkedReceiverInfos", infoList);
         }
     }
 
@@ -257,5 +309,60 @@ public class StressTransmitterBlockEntity extends KineticBlockEntity {
         } else {
             linkedReceiverPositions = Collections.emptyList();
         }
+
+        if (tag.contains("LinkedReceiverInfos", Tag.TAG_LIST)) {
+            ListTag infoList = tag.getList("LinkedReceiverInfos", Tag.TAG_COMPOUND);
+            List<LinkedReceiverInfo> infos = new ArrayList<>(infoList.size());
+            for (Tag infoValue : infoList) {
+                CompoundTag infoTag = (CompoundTag) infoValue;
+                infos.add(new LinkedReceiverInfo(
+                    infoTag.getUUID("LinkId"),
+                    BlockPos.of(infoTag.getLong("Pos")),
+                    parseDimension(infoTag.getString("Dimension")),
+                    infoTag.getInt("RequestedStress"),
+                    StressLinkColors.normalize(infoTag.getInt("Color")),
+                    parseStatus(infoTag.getString("Status"))
+                ));
+            }
+            linkedReceiverInfos = Collections.unmodifiableList(infos);
+        } else {
+            linkedReceiverInfos = Collections.emptyList();
+        }
+    }
+
+    private ReceiverStatus resolveReceiverStatus(net.minecraft.server.MinecraftServer server, LinkAnchor receiver) {
+        if (!receiver.isStaticBlock()) {
+            return ReceiverStatus.IDLE;
+        }
+        net.minecraft.server.level.ServerLevel serverLevel = server.getLevel(receiver.dimensionKey());
+        if (serverLevel == null) {
+            return ReceiverStatus.RECEIVER_UNLOADED;
+        }
+        if (!serverLevel.isLoaded(receiver.pos())) {
+            return ReceiverStatus.RECEIVER_UNLOADED;
+        }
+        BlockEntity blockEntity = serverLevel.getBlockEntity(receiver.pos());
+        if (blockEntity instanceof StressReceiverBlockEntity receiverBlockEntity) {
+            return receiverBlockEntity.getStatus();
+        }
+        return ReceiverStatus.INVALID_RECEIVER;
+    }
+
+    private static ResourceKey<Level> parseDimension(String dimension) {
+        return ResourceKey.create(
+            net.minecraft.core.registries.Registries.DIMENSION,
+            net.minecraft.resources.ResourceLocation.parse(dimension));
+    }
+
+    private static ReceiverStatus parseStatus(String status) {
+        try {
+            return ReceiverStatus.valueOf(status);
+        } catch (IllegalArgumentException ignored) {
+            return ReceiverStatus.IDLE;
+        }
+    }
+
+    public record LinkedReceiverInfo(UUID linkId, BlockPos receiverPos, ResourceKey<Level> dimension,
+                                     int requestedStress, int color, ReceiverStatus status) {
     }
 }

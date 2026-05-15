@@ -72,6 +72,9 @@ public final class StressboundConfig {
 
     @SubscribeEvent
     static void onLoad(ModConfigEvent event) {
+        if (event.getConfig().getSpec() != SPEC) {
+            return;
+        }
         allowCrossDimensionTransmission = ALLOW_CROSS_DIMENSION.get();
         requireLoadedChunks = REQUIRE_LOADED_CHUNKS.get();
         transmitterPoweredStops = TRANSMITTER_POWERED_STOPS.get();

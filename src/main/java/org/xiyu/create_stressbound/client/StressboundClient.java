@@ -9,6 +9,7 @@ import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import org.xiyu.create_stressbound.client.gui.ReceiverScreen;
+import org.xiyu.create_stressbound.client.gui.TransmitterScreen;
 import org.xiyu.create_stressbound.client.visual.StressLinkParticleRenderer;
 import org.xiyu.create_stressbound.ponder.StressboundPonderPlugin;
 import org.xiyu.create_stressbound.registry.StressboundBlockEntities;
@@ -35,6 +36,7 @@ public final class StressboundClient {
 
     public static void registerMenuScreens(RegisterMenuScreensEvent event) {
         event.register(StressboundMenuTypes.RECEIVER.get(), ReceiverScreen::new);
+        event.register(StressboundMenuTypes.TRANSMITTER.get(), TransmitterScreen::new);
     }
 
     private static void registerVisualizers() {

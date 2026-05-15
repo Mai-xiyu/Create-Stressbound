@@ -1,16 +1,27 @@
 {
-    "credit":  "Create Stressbound Kinetic Binder - brass tuning fork and stress lens concept",
-    "textures":  {
-                     "brass":  "create:block/brass_casing",
-                     "andesite":  "create:block/andesite_casing",
-                     "copper":  "block/copper_block",
-                     "dark":  "block/deepslate_tiles",
-                     "glow":  "create_stressbound:item/kinetic_binder_glow",
-                     "particle":  "create_stressbound:item/kinetic_binder"
-                 },
+    "meta":  {
+                 "format_version":  "4.10",
+                 "model_format":  "java_block",
+                 "box_uv":  false
+             },
+    "name":  "kinetic_binder",
+    "model_identifier":  "create_stressbound:kinetic_binder",
+    "visible_box":  [
+                        1,
+                        1,
+                        0
+                    ],
+    "variable_placeholders":  "",
+    "resolution":  {
+                       "width":  16,
+                       "height":  16
+                   },
     "elements":  [
                      {
                          "name":  "andesite_handle_outer",
+                         "box_uv":  false,
+                         "rescale":  true,
+                         "locked":  false,
                          "from":  [
                                       5.8,
                                       0.6,
@@ -21,6 +32,9 @@
                                     7.1,
                                     9.5
                                 ],
+                         "autouv":  0,
+                         "color":  0,
+                         "uuid":  "96af866e-a59b-44be-b162-a3a98583778b",
                          "faces":  {
                                        "down":  {
                                                     "uv":  [
@@ -29,7 +43,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#andesite"
+                                                    "texture":  1
                                                 },
                                        "up":  {
                                                   "uv":  [
@@ -38,7 +52,7 @@
                                                              16,
                                                              16
                                                          ],
-                                                  "texture":  "#andesite"
+                                                  "texture":  1
                                               },
                                        "north":  {
                                                      "uv":  [
@@ -47,7 +61,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#andesite"
+                                                     "texture":  1
                                                  },
                                        "south":  {
                                                      "uv":  [
@@ -56,7 +70,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#andesite"
+                                                     "texture":  1
                                                  },
                                        "west":  {
                                                     "uv":  [
@@ -65,7 +79,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#andesite"
+                                                    "texture":  1
                                                 },
                                        "east":  {
                                                     "uv":  [
@@ -74,12 +88,16 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#andesite"
+                                                    "texture":  1
                                                 }
-                                   }
+                                   },
+                         "type":  "cube"
                      },
                      {
                          "name":  "dark_handle_grip_front",
+                         "box_uv":  false,
+                         "rescale":  true,
+                         "locked":  false,
                          "from":  [
                                       6.35,
                                       1.15,
@@ -90,6 +108,9 @@
                                     6.4,
                                     10.05
                                 ],
+                         "autouv":  0,
+                         "color":  1,
+                         "uuid":  "d51640a8-fe62-47d5-800d-9d6fd2119b87",
                          "faces":  {
                                        "down":  {
                                                     "uv":  [
@@ -98,7 +119,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#dark"
+                                                    "texture":  3
                                                 },
                                        "up":  {
                                                   "uv":  [
@@ -107,7 +128,7 @@
                                                              16,
                                                              16
                                                          ],
-                                                  "texture":  "#dark"
+                                                  "texture":  3
                                               },
                                        "north":  {
                                                      "uv":  [
@@ -116,7 +137,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#dark"
+                                                     "texture":  3
                                                  },
                                        "south":  {
                                                      "uv":  [
@@ -125,7 +146,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#dark"
+                                                     "texture":  3
                                                  },
                                        "west":  {
                                                     "uv":  [
@@ -134,7 +155,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#dark"
+                                                    "texture":  3
                                                 },
                                        "east":  {
                                                     "uv":  [
@@ -143,12 +164,16 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#dark"
+                                                    "texture":  3
                                                 }
-                                   }
+                                   },
+                         "type":  "cube"
                      },
                      {
                          "name":  "dark_handle_cap",
+                         "box_uv":  false,
+                         "rescale":  true,
+                         "locked":  false,
                          "from":  [
                                       6.2,
                                       0.1,
@@ -159,6 +184,9 @@
                                     1.1,
                                     9.2
                                 ],
+                         "autouv":  0,
+                         "color":  2,
+                         "uuid":  "ca6a023c-7947-4685-8101-7846405a5671",
                          "faces":  {
                                        "down":  {
                                                     "uv":  [
@@ -167,7 +195,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#dark"
+                                                    "texture":  3
                                                 },
                                        "up":  {
                                                   "uv":  [
@@ -176,7 +204,7 @@
                                                              16,
                                                              16
                                                          ],
-                                                  "texture":  "#dark"
+                                                  "texture":  3
                                               },
                                        "north":  {
                                                      "uv":  [
@@ -185,7 +213,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#dark"
+                                                     "texture":  3
                                                  },
                                        "south":  {
                                                      "uv":  [
@@ -194,7 +222,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#dark"
+                                                     "texture":  3
                                                  },
                                        "west":  {
                                                     "uv":  [
@@ -203,7 +231,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#dark"
+                                                    "texture":  3
                                                 },
                                        "east":  {
                                                     "uv":  [
@@ -212,12 +240,16 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#dark"
+                                                    "texture":  3
                                                 }
-                                   }
+                                   },
+                         "type":  "cube"
                      },
                      {
                          "name":  "brass_grip_band_lower",
+                         "box_uv":  false,
+                         "rescale":  true,
+                         "locked":  false,
                          "from":  [
                                       5.45,
                                       1.55,
@@ -228,6 +260,9 @@
                                     2.45,
                                     9.85
                                 ],
+                         "autouv":  0,
+                         "color":  3,
+                         "uuid":  "428f59aa-b953-4f06-a0f2-1d541dee561f",
                          "faces":  {
                                        "down":  {
                                                     "uv":  [
@@ -236,7 +271,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#brass"
+                                                    "texture":  0
                                                 },
                                        "up":  {
                                                   "uv":  [
@@ -245,7 +280,7 @@
                                                              16,
                                                              16
                                                          ],
-                                                  "texture":  "#brass"
+                                                  "texture":  0
                                               },
                                        "north":  {
                                                      "uv":  [
@@ -254,7 +289,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#brass"
+                                                     "texture":  0
                                                  },
                                        "south":  {
                                                      "uv":  [
@@ -263,7 +298,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#brass"
+                                                     "texture":  0
                                                  },
                                        "west":  {
                                                     "uv":  [
@@ -272,7 +307,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#brass"
+                                                    "texture":  0
                                                 },
                                        "east":  {
                                                     "uv":  [
@@ -281,12 +316,16 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#brass"
+                                                    "texture":  0
                                                 }
-                                   }
+                                   },
+                         "type":  "cube"
                      },
                      {
                          "name":  "brass_grip_band_upper",
+                         "box_uv":  false,
+                         "rescale":  true,
+                         "locked":  false,
                          "from":  [
                                       5.45,
                                       5.65,
@@ -297,6 +336,9 @@
                                     6.55,
                                     9.85
                                 ],
+                         "autouv":  0,
+                         "color":  4,
+                         "uuid":  "8c43de40-784f-4a62-8d65-dd6a970ea21b",
                          "faces":  {
                                        "down":  {
                                                     "uv":  [
@@ -305,7 +347,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#brass"
+                                                    "texture":  0
                                                 },
                                        "up":  {
                                                   "uv":  [
@@ -314,7 +356,7 @@
                                                              16,
                                                              16
                                                          ],
-                                                  "texture":  "#brass"
+                                                  "texture":  0
                                               },
                                        "north":  {
                                                      "uv":  [
@@ -323,7 +365,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#brass"
+                                                     "texture":  0
                                                  },
                                        "south":  {
                                                      "uv":  [
@@ -332,7 +374,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#brass"
+                                                     "texture":  0
                                                  },
                                        "west":  {
                                                     "uv":  [
@@ -341,7 +383,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#brass"
+                                                    "texture":  0
                                                 },
                                        "east":  {
                                                     "uv":  [
@@ -350,12 +392,16 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#brass"
+                                                    "texture":  0
                                                 }
-                                   }
+                                   },
+                         "type":  "cube"
                      },
                      {
                          "name":  "brass_staff_core",
+                         "box_uv":  false,
+                         "rescale":  true,
+                         "locked":  false,
                          "from":  [
                                       6.65,
                                       6.6,
@@ -366,6 +412,9 @@
                                     12.35,
                                     9.15
                                 ],
+                         "autouv":  0,
+                         "color":  5,
+                         "uuid":  "7930fe34-67da-4b17-befe-ff8b887f2122",
                          "faces":  {
                                        "down":  {
                                                     "uv":  [
@@ -374,7 +423,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#brass"
+                                                    "texture":  0
                                                 },
                                        "up":  {
                                                   "uv":  [
@@ -383,7 +432,7 @@
                                                              16,
                                                              16
                                                          ],
-                                                  "texture":  "#brass"
+                                                  "texture":  0
                                               },
                                        "north":  {
                                                      "uv":  [
@@ -392,7 +441,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#brass"
+                                                     "texture":  0
                                                  },
                                        "south":  {
                                                      "uv":  [
@@ -401,7 +450,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#brass"
+                                                     "texture":  0
                                                  },
                                        "west":  {
                                                     "uv":  [
@@ -410,7 +459,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#brass"
+                                                    "texture":  0
                                                 },
                                        "east":  {
                                                     "uv":  [
@@ -419,12 +468,16 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#brass"
+                                                    "texture":  0
                                                 }
-                                   }
+                                   },
+                         "type":  "cube"
                      },
                      {
                          "name":  "copper_staff_wrap_lower",
+                         "box_uv":  false,
+                         "rescale":  true,
+                         "locked":  false,
                          "from":  [
                                       6.25,
                                       8,
@@ -435,6 +488,9 @@
                                     8.75,
                                     9.45
                                 ],
+                         "autouv":  0,
+                         "color":  6,
+                         "uuid":  "23bcf995-e18e-488d-9a03-23ce6b4823c3",
                          "faces":  {
                                        "down":  {
                                                     "uv":  [
@@ -443,7 +499,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#copper"
+                                                    "texture":  2
                                                 },
                                        "up":  {
                                                   "uv":  [
@@ -452,7 +508,7 @@
                                                              16,
                                                              16
                                                          ],
-                                                  "texture":  "#copper"
+                                                  "texture":  2
                                               },
                                        "north":  {
                                                      "uv":  [
@@ -461,7 +517,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#copper"
+                                                     "texture":  2
                                                  },
                                        "south":  {
                                                      "uv":  [
@@ -470,7 +526,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#copper"
+                                                     "texture":  2
                                                  },
                                        "west":  {
                                                     "uv":  [
@@ -479,7 +535,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#copper"
+                                                    "texture":  2
                                                 },
                                        "east":  {
                                                     "uv":  [
@@ -488,12 +544,16 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#copper"
+                                                    "texture":  2
                                                 }
-                                   }
+                                   },
+                         "type":  "cube"
                      },
                      {
                          "name":  "copper_staff_wrap_upper",
+                         "box_uv":  false,
+                         "rescale":  true,
+                         "locked":  false,
                          "from":  [
                                       6.25,
                                       10,
@@ -504,6 +564,9 @@
                                     10.75,
                                     9.45
                                 ],
+                         "autouv":  0,
+                         "color":  7,
+                         "uuid":  "7fef3990-5133-409a-a16c-05c4488e6ccf",
                          "faces":  {
                                        "down":  {
                                                     "uv":  [
@@ -512,7 +575,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#copper"
+                                                    "texture":  2
                                                 },
                                        "up":  {
                                                   "uv":  [
@@ -521,7 +584,7 @@
                                                              16,
                                                              16
                                                          ],
-                                                  "texture":  "#copper"
+                                                  "texture":  2
                                               },
                                        "north":  {
                                                      "uv":  [
@@ -530,7 +593,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#copper"
+                                                     "texture":  2
                                                  },
                                        "south":  {
                                                      "uv":  [
@@ -539,7 +602,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#copper"
+                                                     "texture":  2
                                                  },
                                        "west":  {
                                                     "uv":  [
@@ -548,7 +611,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#copper"
+                                                    "texture":  2
                                                 },
                                        "east":  {
                                                     "uv":  [
@@ -557,12 +620,16 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#copper"
+                                                    "texture":  2
                                                 }
-                                   }
+                                   },
+                         "type":  "cube"
                      },
                      {
                          "name":  "dark_staff_channel",
+                         "box_uv":  false,
+                         "rescale":  true,
+                         "locked":  false,
                          "from":  [
                                       7.1,
                                       7.2,
@@ -573,6 +640,9 @@
                                     11.7,
                                     9.75
                                 ],
+                         "autouv":  0,
+                         "color":  0,
+                         "uuid":  "389719bb-6954-4d0a-be65-32e6ca39e25a",
                          "faces":  {
                                        "down":  {
                                                     "uv":  [
@@ -581,7 +651,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#dark"
+                                                    "texture":  3
                                                 },
                                        "up":  {
                                                   "uv":  [
@@ -590,7 +660,7 @@
                                                              16,
                                                              16
                                                          ],
-                                                  "texture":  "#dark"
+                                                  "texture":  3
                                               },
                                        "north":  {
                                                      "uv":  [
@@ -599,7 +669,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#dark"
+                                                     "texture":  3
                                                  },
                                        "south":  {
                                                      "uv":  [
@@ -608,7 +678,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#dark"
+                                                     "texture":  3
                                                  },
                                        "west":  {
                                                     "uv":  [
@@ -617,7 +687,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#dark"
+                                                    "texture":  3
                                                 },
                                        "east":  {
                                                     "uv":  [
@@ -626,12 +696,16 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#dark"
+                                                    "texture":  3
                                                 }
-                                   }
+                                   },
+                         "type":  "cube"
                      },
                      {
                          "name":  "brass_head_socket",
+                         "box_uv":  false,
+                         "rescale":  true,
+                         "locked":  false,
                          "from":  [
                                       5.7,
                                       11.75,
@@ -642,6 +716,9 @@
                                     14.35,
                                     10.15
                                 ],
+                         "autouv":  0,
+                         "color":  1,
+                         "uuid":  "1b07bea3-fa86-4718-81f7-f5d3059c9dff",
                          "faces":  {
                                        "down":  {
                                                     "uv":  [
@@ -650,7 +727,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#brass"
+                                                    "texture":  0
                                                 },
                                        "up":  {
                                                   "uv":  [
@@ -659,7 +736,7 @@
                                                              16,
                                                              16
                                                          ],
-                                                  "texture":  "#brass"
+                                                  "texture":  0
                                               },
                                        "north":  {
                                                      "uv":  [
@@ -668,7 +745,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#brass"
+                                                     "texture":  0
                                                  },
                                        "south":  {
                                                      "uv":  [
@@ -677,7 +754,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#brass"
+                                                     "texture":  0
                                                  },
                                        "west":  {
                                                     "uv":  [
@@ -686,7 +763,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#brass"
+                                                    "texture":  0
                                                 },
                                        "east":  {
                                                     "uv":  [
@@ -695,12 +772,16 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#brass"
+                                                    "texture":  0
                                                 }
-                                   }
+                                   },
+                         "type":  "cube"
                      },
                      {
                          "name":  "dark_head_recess",
+                         "box_uv":  false,
+                         "rescale":  true,
+                         "locked":  false,
                          "from":  [
                                       6.45,
                                       12.25,
@@ -711,6 +792,9 @@
                                     13.95,
                                     10.75
                                 ],
+                         "autouv":  0,
+                         "color":  2,
+                         "uuid":  "42441275-e0e8-48ab-9f01-5a8f66b8ebb6",
                          "faces":  {
                                        "down":  {
                                                     "uv":  [
@@ -719,7 +803,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#dark"
+                                                    "texture":  3
                                                 },
                                        "up":  {
                                                   "uv":  [
@@ -728,7 +812,7 @@
                                                              16,
                                                              16
                                                          ],
-                                                  "texture":  "#dark"
+                                                  "texture":  3
                                               },
                                        "north":  {
                                                      "uv":  [
@@ -737,7 +821,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#dark"
+                                                     "texture":  3
                                                  },
                                        "south":  {
                                                      "uv":  [
@@ -746,7 +830,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#dark"
+                                                     "texture":  3
                                                  },
                                        "west":  {
                                                     "uv":  [
@@ -755,7 +839,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#dark"
+                                                    "texture":  3
                                                 },
                                        "east":  {
                                                     "uv":  [
@@ -764,12 +848,16 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#dark"
+                                                    "texture":  3
                                                 }
-                                   }
+                                   },
+                         "type":  "cube"
                      },
                      {
                          "name":  "stress_crystal",
+                         "box_uv":  false,
+                         "rescale":  true,
+                         "locked":  false,
                          "from":  [
                                       7.05,
                                       12.65,
@@ -780,6 +868,9 @@
                                     13.75,
                                     11.55
                                 ],
+                         "autouv":  0,
+                         "color":  3,
+                         "uuid":  "80d3dad0-1c4d-422a-b255-34f3cf2980bb",
                          "faces":  {
                                        "down":  {
                                                     "uv":  [
@@ -788,7 +879,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#glow"
+                                                    "texture":  4
                                                 },
                                        "up":  {
                                                   "uv":  [
@@ -797,7 +888,7 @@
                                                              16,
                                                              16
                                                          ],
-                                                  "texture":  "#glow"
+                                                  "texture":  4
                                               },
                                        "north":  {
                                                      "uv":  [
@@ -806,7 +897,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#glow"
+                                                     "texture":  4
                                                  },
                                        "south":  {
                                                      "uv":  [
@@ -815,7 +906,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#glow"
+                                                     "texture":  4
                                                  },
                                        "west":  {
                                                     "uv":  [
@@ -824,7 +915,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#glow"
+                                                    "texture":  4
                                                 },
                                        "east":  {
                                                     "uv":  [
@@ -833,12 +924,16 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#glow"
+                                                    "texture":  4
                                                 }
-                                   }
+                                   },
+                         "type":  "cube"
                      },
                      {
                          "name":  "crystal_glint",
+                         "box_uv":  false,
+                         "rescale":  true,
+                         "locked":  false,
                          "from":  [
                                       7.55,
                                       13.05,
@@ -849,6 +944,9 @@
                                     13.55,
                                     11.85
                                 ],
+                         "autouv":  0,
+                         "color":  4,
+                         "uuid":  "072465e6-51d5-45a0-89f6-2e353c30be42",
                          "faces":  {
                                        "down":  {
                                                     "uv":  [
@@ -857,7 +955,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#glow"
+                                                    "texture":  4
                                                 },
                                        "up":  {
                                                   "uv":  [
@@ -866,7 +964,7 @@
                                                              16,
                                                              16
                                                          ],
-                                                  "texture":  "#glow"
+                                                  "texture":  4
                                               },
                                        "north":  {
                                                      "uv":  [
@@ -875,7 +973,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#glow"
+                                                     "texture":  4
                                                  },
                                        "south":  {
                                                      "uv":  [
@@ -884,7 +982,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#glow"
+                                                     "texture":  4
                                                  },
                                        "west":  {
                                                     "uv":  [
@@ -893,7 +991,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#glow"
+                                                    "texture":  4
                                                 },
                                        "east":  {
                                                     "uv":  [
@@ -902,12 +1000,16 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#glow"
+                                                    "texture":  4
                                                 }
-                                   }
+                                   },
+                         "type":  "cube"
                      },
                      {
                          "name":  "tuning_prong_left",
+                         "box_uv":  false,
+                         "rescale":  true,
+                         "locked":  false,
                          "from":  [
                                       4.85,
                                       12.95,
@@ -918,6 +1020,9 @@
                                     16,
                                     9.55
                                 ],
+                         "autouv":  0,
+                         "color":  5,
+                         "uuid":  "56914213-9821-4b92-9ad5-98e21aca4cf9",
                          "faces":  {
                                        "down":  {
                                                     "uv":  [
@@ -926,7 +1031,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#brass"
+                                                    "texture":  0
                                                 },
                                        "up":  {
                                                   "uv":  [
@@ -935,7 +1040,7 @@
                                                              16,
                                                              16
                                                          ],
-                                                  "texture":  "#brass"
+                                                  "texture":  0
                                               },
                                        "north":  {
                                                      "uv":  [
@@ -944,7 +1049,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#brass"
+                                                     "texture":  0
                                                  },
                                        "south":  {
                                                      "uv":  [
@@ -953,7 +1058,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#brass"
+                                                     "texture":  0
                                                  },
                                        "west":  {
                                                     "uv":  [
@@ -962,7 +1067,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#brass"
+                                                    "texture":  0
                                                 },
                                        "east":  {
                                                     "uv":  [
@@ -971,12 +1076,16 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#brass"
+                                                    "texture":  0
                                                 }
-                                   }
+                                   },
+                         "type":  "cube"
                      },
                      {
                          "name":  "tuning_prong_right",
+                         "box_uv":  false,
+                         "rescale":  true,
+                         "locked":  false,
                          "from":  [
                                       10.05,
                                       12.95,
@@ -987,6 +1096,9 @@
                                     16,
                                     9.55
                                 ],
+                         "autouv":  0,
+                         "color":  6,
+                         "uuid":  "64a3cbce-2f95-491a-9676-8d70b8a02dce",
                          "faces":  {
                                        "down":  {
                                                     "uv":  [
@@ -995,7 +1107,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#brass"
+                                                    "texture":  0
                                                 },
                                        "up":  {
                                                   "uv":  [
@@ -1004,7 +1116,7 @@
                                                              16,
                                                              16
                                                          ],
-                                                  "texture":  "#brass"
+                                                  "texture":  0
                                               },
                                        "north":  {
                                                      "uv":  [
@@ -1013,7 +1125,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#brass"
+                                                     "texture":  0
                                                  },
                                        "south":  {
                                                      "uv":  [
@@ -1022,7 +1134,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#brass"
+                                                     "texture":  0
                                                  },
                                        "west":  {
                                                     "uv":  [
@@ -1031,7 +1143,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#brass"
+                                                    "texture":  0
                                                 },
                                        "east":  {
                                                     "uv":  [
@@ -1040,12 +1152,16 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#brass"
+                                                    "texture":  0
                                                 }
-                                   }
+                                   },
+                         "type":  "cube"
                      },
                      {
                          "name":  "fork_dark_gap",
+                         "box_uv":  false,
+                         "rescale":  true,
+                         "locked":  false,
                          "from":  [
                                       7,
                                       14.55,
@@ -1056,6 +1172,9 @@
                                     15.75,
                                     10.05
                                 ],
+                         "autouv":  0,
+                         "color":  7,
+                         "uuid":  "a13d757e-12a1-4ba2-b75a-f6b6a8f1429d",
                          "faces":  {
                                        "down":  {
                                                     "uv":  [
@@ -1064,7 +1183,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#dark"
+                                                    "texture":  3
                                                 },
                                        "up":  {
                                                   "uv":  [
@@ -1073,7 +1192,7 @@
                                                              16,
                                                              16
                                                          ],
-                                                  "texture":  "#dark"
+                                                  "texture":  3
                                               },
                                        "north":  {
                                                      "uv":  [
@@ -1082,7 +1201,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#dark"
+                                                     "texture":  3
                                                  },
                                        "south":  {
                                                      "uv":  [
@@ -1091,7 +1210,7 @@
                                                                 16,
                                                                 16
                                                             ],
-                                                     "texture":  "#dark"
+                                                     "texture":  3
                                                  },
                                        "west":  {
                                                     "uv":  [
@@ -1100,7 +1219,7 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#dark"
+                                                    "texture":  3
                                                 },
                                        "east":  {
                                                     "uv":  [
@@ -1109,121 +1228,90 @@
                                                                16,
                                                                16
                                                            ],
-                                                    "texture":  "#dark"
+                                                    "texture":  3
                                                 }
-                                   }
+                                   },
+                         "type":  "cube"
                      }
                  ],
-    "gui_light":  "front",
-    "display":  {
-                    "thirdperson_righthand":  {
-                                                  "rotation":  [
-                                                                   0,
-                                                                   0,
-                                                                   -28
-                                                               ],
-                                                  "translation":  [
-                                                                      0,
-                                                                      3.25,
-                                                                      1.25
-                                                                  ],
-                                                  "scale":  [
-                                                                0.55,
-                                                                0.55,
-                                                                0.55
-                                                            ]
-                                              },
-                    "thirdperson_lefthand":  {
-                                                 "rotation":  [
-                                                                  0,
-                                                                  0,
-                                                                  28
-                                                              ],
-                                                 "translation":  [
-                                                                     0,
-                                                                     3.25,
-                                                                     1.25
-                                                                 ],
-                                                 "scale":  [
-                                                               0.55,
-                                                               0.55,
-                                                               0.55
-                                                           ]
-                                             },
-                    "firstperson_righthand":  {
-                                                  "rotation":  [
-                                                                   0,
-                                                                   -20,
-                                                                   -18
-                                                               ],
-                                                  "translation":  [
-                                                                      2.25,
-                                                                      1.25,
-                                                                      -0.75
-                                                                  ],
-                                                  "scale":  [
-                                                                0.72,
-                                                                0.72,
-                                                                0.72
-                                                            ]
-                                              },
-                    "firstperson_lefthand":  {
-                                                 "rotation":  [
-                                                                  0,
-                                                                  20,
-                                                                  18
-                                                              ],
-                                                 "translation":  [
-                                                                     -2.25,
-                                                                     1.25,
-                                                                     -0.75
-                                                                 ],
-                                                 "scale":  [
-                                                               0.72,
-                                                               0.72,
-                                                               0.72
-                                                           ]
-                                             },
-                    "ground":  {
-                                   "rotation":  [
-                                                    -84,
-                                                    0,
-                                                    36
-                                                ],
-                                   "translation":  [
-                                                       0,
-                                                       3,
-                                                       0
-                                                   ],
-                                   "scale":  [
-                                                 0.45,
-                                                 0.45,
-                                                 0.45
-                                             ]
-                               },
-                    "gui":  {
-                                "rotation":  [
-                                                 0,
-                                                 0,
-                                                 -35
-                                             ],
-                                "scale":  [
-                                              0.86,
-                                              0.86,
-                                              0.86
-                                          ]
-                            },
-                    "fixed":  {
-                                  "rotation":  [
-                                                   1,
-                                                   -180,
-                                                   33
-                                               ],
-                                  "scale":  [
-                                                0.85,
-                                                0.85,
-                                                0.85
-                                            ]
-                              }
-                }
+    "outliner":  [
+                     "96af866e-a59b-44be-b162-a3a98583778b",
+                     "d51640a8-fe62-47d5-800d-9d6fd2119b87",
+                     "ca6a023c-7947-4685-8101-7846405a5671",
+                     "428f59aa-b953-4f06-a0f2-1d541dee561f",
+                     "8c43de40-784f-4a62-8d65-dd6a970ea21b",
+                     "7930fe34-67da-4b17-befe-ff8b887f2122",
+                     "23bcf995-e18e-488d-9a03-23ce6b4823c3",
+                     "7fef3990-5133-409a-a16c-05c4488e6ccf",
+                     "389719bb-6954-4d0a-be65-32e6ca39e25a",
+                     "1b07bea3-fa86-4718-81f7-f5d3059c9dff",
+                     "42441275-e0e8-48ab-9f01-5a8f66b8ebb6",
+                     "80d3dad0-1c4d-422a-b255-34f3cf2980bb",
+                     "072465e6-51d5-45a0-89f6-2e353c30be42",
+                     "56914213-9821-4b92-9ad5-98e21aca4cf9",
+                     "64a3cbce-2f95-491a-9676-8d70b8a02dce",
+                     "a13d757e-12a1-4ba2-b75a-f6b6a8f1429d"
+                 ],
+    "textures":  [
+                     {
+                         "path":  "create:block/brass_casing",
+                         "name":  "brass_casing",
+                         "folder":  "block",
+                         "namespace":  "create",
+                         "id":  "0",
+                         "particle":  true,
+                         "width":  16,
+                         "height":  16,
+                         "uv_width":  16,
+                         "uv_height":  16
+                     },
+                     {
+                         "path":  "create:block/andesite_casing",
+                         "name":  "andesite_casing",
+                         "folder":  "block",
+                         "namespace":  "create",
+                         "id":  "1",
+                         "particle":  false,
+                         "width":  16,
+                         "height":  16,
+                         "uv_width":  16,
+                         "uv_height":  16
+                     },
+                     {
+                         "path":  "minecraft:block/copper_block",
+                         "name":  "copper_block",
+                         "folder":  "block",
+                         "namespace":  "minecraft",
+                         "id":  "2",
+                         "particle":  false,
+                         "width":  16,
+                         "height":  16,
+                         "uv_width":  16,
+                         "uv_height":  16
+                     },
+                     {
+                         "path":  "minecraft:block/deepslate_tiles",
+                         "name":  "deepslate_tiles",
+                         "folder":  "block",
+                         "namespace":  "minecraft",
+                         "id":  "3",
+                         "particle":  false,
+                         "width":  16,
+                         "height":  16,
+                         "uv_width":  16,
+                         "uv_height":  16
+                     },
+                     {
+                         "path":  "create_stressbound:item/kinetic_binder_glow",
+                         "name":  "kinetic_binder_glow",
+                         "folder":  "item",
+                         "namespace":  "create_stressbound",
+                         "id":  "4",
+                         "particle":  false,
+                         "width":  16,
+                         "height":  16,
+                         "uv_width":  16,
+                         "uv_height":  16
+                     }
+                 ]
 }

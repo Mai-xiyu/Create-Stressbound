@@ -16,6 +16,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
 import org.xiyu.create_stressbound.content.kinetics.StressReceiverBlockEntity;
 import org.xiyu.create_stressbound.content.kinetics.StressTransmitterBlockEntity;
 import org.xiyu.create_stressbound.content.link.ReceiverStatus;
+import org.xiyu.create_stressbound.content.link.StressLinkColors;
 
 public final class StressLinkVisualData {
 
@@ -38,6 +39,7 @@ public final class StressLinkVisualData {
         int grantedStress,
         int requestedStress,
         ReceiverStatus status,
+        int color,
         ResourceKey<Level> dimension
     ) {
     }
@@ -90,6 +92,9 @@ public final class StressLinkVisualData {
 
                         ResourceKey<Level> txDim = receiver.getTransmitterDimension();
                         boolean sameDimension = txDim != null && txDim.equals(level.dimension());
+                        if (sameDimension && !receiver.isTransmitterMoving() && !hasStressTransmitter(mc.level, txPos)) {
+                            continue;
+                        }
 
                         links.add(new LinkVisual(
                             txPos.immutable(),
@@ -98,6 +103,7 @@ public final class StressLinkVisualData {
                             receiver.getGrantedStress(),
                             receiver.getRequestedStress(),
                             receiver.getStatus(),
+                            StressLinkColors.normalize(receiver.getLinkColor()),
                             sameDimension ? level.dimension() : null
                         ));
                         if (links.size() >= MAX_LINKS) {
@@ -108,6 +114,16 @@ public final class StressLinkVisualData {
             }
         }
         return Collections.unmodifiableList(links);
+    }
+
+    private static boolean hasStressTransmitter(ClientLevel level, BlockPos pos) {
+        if (level == null || pos == null || pos.equals(BlockPos.ZERO)) {
+            return false;
+        }
+        if (!level.hasChunk(SectionPos.blockToSectionCoord(pos.getX()), SectionPos.blockToSectionCoord(pos.getZ()))) {
+            return false;
+        }
+        return level.getBlockEntity(pos) instanceof StressTransmitterBlockEntity;
     }
 
     public static Optional<BlockPos> findTransmitterFor(Level level, BlockPos receiverPos) {

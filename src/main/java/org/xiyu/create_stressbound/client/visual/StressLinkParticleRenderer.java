@@ -22,6 +22,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
+import org.xiyu.create_stressbound.client.StressboundClientConfig;
 import org.xiyu.create_stressbound.content.link.ReceiverStatus;
 import org.xiyu.create_stressbound.registry.StressboundItems;
 
@@ -32,10 +33,6 @@ public final class StressLinkParticleRenderer {
     private static final float LINE_WIDTH = 0.06F;
     private static final double MAX_RENDER_DISTANCE_SQR = 96.0D * 96.0D;
     private static final int MAX_BEAM_SEGMENTS = 96;
-    private static final float[] GOLD_ACTIVE = new float[]{1.0F, 0.78F, 0.22F};
-    private static final float[] GOLD_IDLE = new float[]{0.74F, 0.56F, 0.22F};
-    private static final float[] GOLD_WARN = new float[]{1.0F, 0.58F, 0.14F};
-    private static final float[] GOLD_DARK = new float[]{0.46F, 0.32F, 0.12F};
 
     private StressLinkParticleRenderer() {
     }
@@ -53,7 +50,7 @@ public final class StressLinkParticleRenderer {
 
         boolean holdingBinder = player.getItemInHand(InteractionHand.MAIN_HAND).is(StressboundItems.KINETIC_BINDER.get())
             || player.getItemInHand(InteractionHand.OFF_HAND).is(StressboundItems.KINETIC_BINDER.get());
-        if (!holdingBinder) return;
+        if (!StressboundClientConfig.shouldRenderLinks(player, holdingBinder)) return;
 
         List<StressLinkVisualData.LinkVisual> links = StressLinkVisualData.getLinks(level);
         if (links.isEmpty()) return;
@@ -82,7 +79,7 @@ public final class StressLinkParticleRenderer {
                     if (link.dimension() != null) {
                         renderBeam(m, right, up, link, cam, animationTime);
                     } else {
-                        renderGlowRing(m, right, up, link.receiverPos(), link.status(), cam, animationTime);
+                        renderGlowRing(m, right, up, link.receiverPos(), link.status(), link.color(), cam, animationTime);
                     }
                 }
             } finally {
@@ -102,7 +99,7 @@ public final class StressLinkParticleRenderer {
             && end.distanceToSqr(cameraPos) > MAX_RENDER_DISTANCE_SQR) {
             return;
         }
-        float[] c = statusColor(link.status());
+        float[] c = statusColor(link.status(), link.color());
         float dist = (float) start.distanceTo(end);
         int segments = Math.min(MAX_BEAM_SEGMENTS, Math.max(2, Mth.ceil(dist / BEAM_STEP)));
 
@@ -201,12 +198,12 @@ public final class StressLinkParticleRenderer {
     }
 
     private static void renderGlowRing(Matrix4f m, Vector3f right, Vector3f up,
-                                        BlockPos pos, ReceiverStatus status, Vec3 cameraPos, float animationTime) {
+                                        BlockPos pos, ReceiverStatus status, int color, Vec3 cameraPos, float animationTime) {
         Vec3 center = blockCenter(pos);
         if (center.distanceToSqr(cameraPos) > MAX_RENDER_DISTANCE_SQR) {
             return;
         }
-        float[] c = statusColor(status);
+        float[] c = statusColor(status, color);
         float t = (animationTime % 40.0F) / 40.0F;
         float r = GLOW_RADIUS * (0.7F + 0.3F * Mth.sin(t * Mth.TWO_PI));
 
@@ -241,13 +238,19 @@ public final class StressLinkParticleRenderer {
         return new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
     }
 
-    private static float[] statusColor(ReceiverStatus status) {
-        return switch (status) {
-            case ACTIVE -> GOLD_ACTIVE;
-            case OVERLOADED -> GOLD_WARN;
-            case TRANSMITTER_DISABLED, RECEIVER_DISABLED -> GOLD_DARK;
-            case IDLE -> GOLD_IDLE;
-            default -> GOLD_WARN;
+    private static float[] statusColor(ReceiverStatus status, int color) {
+        float brightness = switch (status) {
+            case ACTIVE -> 1.0F;
+            case OVERLOADED -> 0.92F;
+            case TRANSMITTER_DISABLED, RECEIVER_DISABLED -> 0.35F;
+            case IDLE -> 0.62F;
+            default -> 0.75F;
+        };
+        int rgb = color & 0xFFFFFF;
+        return new float[]{
+            ((rgb >> 16) & 0xFF) / 255.0F * brightness,
+            ((rgb >> 8) & 0xFF) / 255.0F * brightness,
+            (rgb & 0xFF) / 255.0F * brightness
         };
     }
 }
