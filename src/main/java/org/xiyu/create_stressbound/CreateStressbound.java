@@ -23,6 +23,7 @@ import org.xiyu.create_stressbound.content.link.MovingEndpointMovementBehaviour;
 import org.xiyu.create_stressbound.content.link.StressLinkService;
 import org.xiyu.create_stressbound.network.ReverseTogglePacket;
 import org.xiyu.create_stressbound.network.SetLinkColorPacket;
+import org.xiyu.create_stressbound.network.StressLinkVisualSyncPacket;
 import org.xiyu.create_stressbound.registry.StressboundBlockEntities;
 import org.xiyu.create_stressbound.registry.StressboundBlocks;
 import org.xiyu.create_stressbound.registry.StressboundCreativeTabs;
@@ -72,6 +73,11 @@ public final class CreateStressbound {
             SetLinkColorPacket.TYPE,
             SetLinkColorPacket.CODEC,
             SetLinkColorPacket::handle
+        );
+        registrar.playToClient(
+            StressLinkVisualSyncPacket.TYPE,
+            StressLinkVisualSyncPacket.CODEC,
+            StressLinkVisualSyncPacket::handle
         );
     }
 

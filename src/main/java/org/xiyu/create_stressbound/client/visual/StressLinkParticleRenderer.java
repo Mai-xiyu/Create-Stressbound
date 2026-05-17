@@ -13,7 +13,6 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.core.BlockPos;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -76,11 +75,7 @@ public final class StressLinkParticleRenderer {
 
             try {
                 for (StressLinkVisualData.LinkVisual link : links) {
-                    if (link.dimension() != null) {
-                        renderBeam(m, right, up, link, cam, animationTime);
-                    } else {
-                        renderGlowRing(m, right, up, link.receiverPos(), link.status(), link.color(), cam, animationTime);
-                    }
+                    renderBeam(m, right, up, link, cam, animationTime);
                 }
             } finally {
                 RenderSystem.depthMask(true);
@@ -93,8 +88,8 @@ public final class StressLinkParticleRenderer {
 
     private static void renderBeam(Matrix4f m, Vector3f right, Vector3f up,
                                    StressLinkVisualData.LinkVisual link, Vec3 cameraPos, float animationTime) {
-        Vec3 start = blockCenter(link.transmitterPos());
-        Vec3 end = blockCenter(link.receiverPos());
+        Vec3 start = link.transmitterPos();
+        Vec3 end = link.receiverPos();
         if (start.distanceToSqr(cameraPos) > MAX_RENDER_DISTANCE_SQR
             && end.distanceToSqr(cameraPos) > MAX_RENDER_DISTANCE_SQR) {
             return;
@@ -198,8 +193,7 @@ public final class StressLinkParticleRenderer {
     }
 
     private static void renderGlowRing(Matrix4f m, Vector3f right, Vector3f up,
-                                        BlockPos pos, ReceiverStatus status, int color, Vec3 cameraPos, float animationTime) {
-        Vec3 center = blockCenter(pos);
+                                        Vec3 center, ReceiverStatus status, int color, Vec3 cameraPos, float animationTime) {
         if (center.distanceToSqr(cameraPos) > MAX_RENDER_DISTANCE_SQR) {
             return;
         }
@@ -232,10 +226,6 @@ public final class StressLinkParticleRenderer {
 
         MeshData meshData = buffer.buildOrThrow();
         BufferUploader.drawWithShader(meshData);
-    }
-
-    private static Vec3 blockCenter(BlockPos pos) {
-        return new Vec3(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
     }
 
     private static float[] statusColor(ReceiverStatus status, int color) {

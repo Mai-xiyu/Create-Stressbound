@@ -1,6 +1,7 @@
 package org.xiyu.create_stressbound.content.link;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,24 +16,37 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.xiyu.create_stressbound.StressboundConfig;
+import org.xiyu.create_stressbound.compat.MovingStructureSupport;
 import org.xiyu.create_stressbound.content.kinetics.StressReceiverBlockEntity;
 import org.xiyu.create_stressbound.content.kinetics.StressTransmitterBlockEntity;
+import org.xiyu.create_stressbound.network.StressLinkVisualSyncPacket;
 
 public final class StressLinkService {
+    private static final float MIN_RUNTIME_SPEED = 0.01F;
+    private static final int VISUAL_SYNC_INTERVAL_TICKS = 5;
+    private static final double VISUAL_SYNC_DISTANCE = 128.0D;
+    private static final double VISUAL_SYNC_DISTANCE_SQR = VISUAL_SYNC_DISTANCE * VISUAL_SYNC_DISTANCE;
+    private static final int MAX_VISUAL_LINKS_PER_PLAYER = 128;
+
     private StressLinkService() {
     }
 
     public static void onServerTick(ServerTickEvent.Post event) {
         MinecraftServer server = event.getServer();
-        MovingEndpointRegistry.get(server).cleanup(server.getTickCount());
+        int tick = server.getTickCount();
+        MovingEndpointRegistry.get(server).cleanup(tick);
 
         int interval = evaluationInterval();
-        if (server.getTickCount() % interval != 0) {
-            return;
+        if (tick % interval == 0) {
+            evaluate(server);
         }
-        evaluate(server);
+        if (tick % VISUAL_SYNC_INTERVAL_TICKS == 0) {
+            syncClientVisuals(server);
+        }
     }
 
     private static int evaluationInterval() {
@@ -305,6 +319,141 @@ public final class StressLinkService {
         }
     }
 
+    private static void syncClientVisuals(MinecraftServer server) {
+        List<ServerPlayer> players = server.getPlayerList().getPlayers();
+        if (players.isEmpty()) {
+            return;
+        }
+
+        List<StressLinkRecord> records = List.copyOf(StressLinkSavedData.get(server).all());
+        if (records.isEmpty()) {
+            StressLinkVisualSyncPacket packet = new StressLinkVisualSyncPacket(List.of());
+            for (ServerPlayer player : players) {
+                PacketDistributor.sendToPlayer(player, packet);
+            }
+            return;
+        }
+
+        for (ServerPlayer player : players) {
+            PacketDistributor.sendToPlayer(player,
+                new StressLinkVisualSyncPacket(buildVisualPayloadsForPlayer(server, player, records)));
+        }
+    }
+
+    private static List<StressLinkVisualSyncPacket.LinkVisualPayload> buildVisualPayloadsForPlayer(
+        MinecraftServer server,
+        ServerPlayer player,
+        Collection<StressLinkRecord> records
+    ) {
+        List<StressLinkVisualSyncPacket.LinkVisualPayload> payloads = new ArrayList<>();
+        ResourceKey<Level> playerDimension = player.level().dimension();
+        Vec3 playerPos = player.position();
+
+        for (StressLinkRecord record : records) {
+            Optional<VisualEndpoint> transmitter = resolveVisualEndpoint(server, record.transmitter(), EndpointRole.TRANSMITTER);
+            Optional<VisualEndpoint> receiver = resolveVisualEndpoint(server, record.receiver(), EndpointRole.RECEIVER);
+            if (transmitter.isEmpty() || receiver.isEmpty()) {
+                continue;
+            }
+
+            VisualEndpoint transmitterEndpoint = transmitter.get();
+            VisualEndpoint receiverEndpoint = receiver.get();
+            if (!transmitterEndpoint.dimension().equals(playerDimension) || !receiverEndpoint.dimension().equals(playerDimension)) {
+                continue;
+            }
+            if (transmitterEndpoint.position().distanceToSqr(playerPos) > VISUAL_SYNC_DISTANCE_SQR
+                && receiverEndpoint.position().distanceToSqr(playerPos) > VISUAL_SYNC_DISTANCE_SQR) {
+                continue;
+            }
+
+            ReceiverVisualRuntime runtime = resolveReceiverVisualRuntime(server, record);
+            payloads.add(new StressLinkVisualSyncPacket.LinkVisualPayload(
+                transmitterEndpoint.position().x,
+                transmitterEndpoint.position().y,
+                transmitterEndpoint.position().z,
+                receiverEndpoint.position().x,
+                receiverEndpoint.position().y,
+                receiverEndpoint.position().z,
+                runtime.speed(),
+                runtime.grantedStress(),
+                record.requestedStress(),
+                runtime.status(),
+                record.color()
+            ));
+
+            if (payloads.size() >= MAX_VISUAL_LINKS_PER_PLAYER) {
+                break;
+            }
+        }
+
+        return payloads;
+    }
+
+    private static Optional<VisualEndpoint> resolveVisualEndpoint(MinecraftServer server, LinkAnchor anchor, EndpointRole role) {
+        Optional<UUID> endpointId = anchor.endpointId();
+        if (endpointId.isPresent()) {
+            Optional<MovingEndpointRegistry.RuntimeEndpoint> moving = MovingEndpointRegistry.get(server).get(endpointId.get())
+                .filter(endpoint -> role == EndpointRole.TRANSMITTER ? endpoint.isTransmitter() : endpoint.isReceiver());
+            if (moving.isPresent()) {
+                return visualEndpointForAnchor(server, moving.get().anchor());
+            }
+        }
+
+        if (!anchor.isStaticBlock()) {
+            return Optional.empty();
+        }
+
+        ServerLevel level = server.getLevel(anchor.dimensionKey());
+        if (level == null || !level.isLoaded(anchor.pos())) {
+            return Optional.empty();
+        }
+
+        BlockEntity blockEntity = level.getBlockEntity(anchor.pos());
+        if (role == EndpointRole.TRANSMITTER) {
+            if (!(blockEntity instanceof StressTransmitterBlockEntity transmitter)) {
+                return Optional.empty();
+            }
+            if (endpointId.isPresent() && !endpointId.get().equals(transmitter.getEndpointId())) {
+                return Optional.empty();
+            }
+        } else {
+            if (!(blockEntity instanceof StressReceiverBlockEntity receiver)) {
+                return Optional.empty();
+            }
+            if (endpointId.isPresent() && !endpointId.get().equals(receiver.getEndpointId())) {
+                return Optional.empty();
+            }
+        }
+
+        return Optional.of(new VisualEndpoint(level.dimension(), MovingStructureSupport.projectBlockCenter(level, anchor.pos())));
+    }
+
+    private static Optional<VisualEndpoint> visualEndpointForAnchor(MinecraftServer server, LinkAnchor anchor) {
+        ServerLevel level = server.getLevel(anchor.dimensionKey());
+        if (level == null) {
+            return Optional.empty();
+        }
+        return Optional.of(new VisualEndpoint(level.dimension(), MovingStructureSupport.projectBlockCenter(level, anchor.pos())));
+    }
+
+    private static ReceiverVisualRuntime resolveReceiverVisualRuntime(MinecraftServer server, StressLinkRecord record) {
+        Optional<StressReceiverBlockEntity> receiver = getStaticReceiver(server, record.receiver());
+        if (receiver.isPresent()) {
+            StressReceiverBlockEntity receiverBlockEntity = receiver.get();
+            return new ReceiverVisualRuntime(receiverBlockEntity.getTransmittedSpeed(), receiverBlockEntity.getGrantedStress(),
+                receiverBlockEntity.getStatus());
+        }
+
+        if (record.receiver().endpointId().isPresent()
+            && MovingEndpointRegistry.get(server).get(record.receiver().endpointId().get())
+                .filter(MovingEndpointRegistry.RuntimeEndpoint::isReceiver)
+                .isPresent()) {
+            return new ReceiverVisualRuntime(0.0F, 0, ReceiverStatus.IDLE);
+        }
+
+        return new ReceiverVisualRuntime(0.0F, 0, ReceiverStatus.RECEIVER_UNLOADED);
+    }
+
     private static void evaluateGroup(MinecraftServer server, List<StressLinkRecord> records, List<UUID> brokenLinks) {
         if (records.isEmpty()) {
             return;
@@ -505,6 +654,13 @@ public final class StressLinkService {
             && stored.pos().equals(fresh.pos());
     }
 
+    private static float normalizeRuntimeSpeed(float speed) {
+        if (!Float.isFinite(speed) || Math.abs(speed) < MIN_RUNTIME_SPEED) {
+            return 0.0F;
+        }
+        return speed;
+    }
+
     public record BindResult(boolean success, Component message) {
         public static BindResult success(Component message) {
             return new BindResult(true, message);
@@ -538,11 +694,19 @@ public final class StressLinkService {
     private record ActiveReceiver(StressLinkRecord record, StressReceiverBlockEntity receiver, int reservedStress) {
     }
 
+    private record VisualEndpoint(ResourceKey<Level> dimension, Vec3 position) {
+    }
+
+    private record ReceiverVisualRuntime(float speed, int grantedStress, ReceiverStatus status) {
+    }
+
     private record TransmitterRuntime(Optional<ReceiverStatus> failureStatus, float speed, int availableStress,
                                       boolean poweredDisabled, boolean remoteLoop, LinkAnchor visualAnchor) {
         static TransmitterRuntime active(float speed, int availableStress, boolean poweredDisabled,
                                          boolean remoteLoop, LinkAnchor visualAnchor) {
-            return new TransmitterRuntime(Optional.empty(), speed, Math.max(availableStress, 0),
+            float normalizedSpeed = normalizeRuntimeSpeed(speed);
+            int normalizedStress = normalizedSpeed == 0.0F ? 0 : Math.max(availableStress, 0);
+            return new TransmitterRuntime(Optional.empty(), normalizedSpeed, normalizedStress,
                 poweredDisabled, remoteLoop, visualAnchor);
         }
 

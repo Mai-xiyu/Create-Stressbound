@@ -29,6 +29,7 @@ import org.xiyu.create_stressbound.registry.StressboundBlockEntities;
 
 public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity implements MenuProvider {
     public static final String ENDPOINT_ID_KEY = "EndpointId";
+    private static final float MIN_RUNTIME_SPEED = 0.01F;
     private static final String LINK_ID_KEY = "LinkId";
     private static final String REQUESTED_STRESS_KEY = "RequestedStress";
     private static final String STATUS_KEY = "ReceiverStatus";
@@ -66,6 +67,8 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
         endpointId = endpointId == null ? UUID.randomUUID() : endpointId;
         transmittedSpeed = 0.0F;
         grantedStress = 0;
+        lastCapacityProvided = 0.0F;
+        lastStressApplied = 0.0F;
         if (level instanceof net.minecraft.server.level.ServerLevel serverLevel && linkId != null) {
             if (org.xiyu.create_stressbound.content.link.StressLinkSavedData.get(serverLevel.getServer()).get(linkId).isEmpty()) {
                 clearLink();
@@ -79,7 +82,7 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
 
     @Override
     public float getGeneratedSpeed() {
-        if (transmittedSpeed == 0.0F) {
+        if (isRuntimeStopped(transmittedSpeed)) {
             return 0.0F;
         }
         float speed = reverseOutput ? -transmittedSpeed : transmittedSpeed;
@@ -89,14 +92,16 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
 
     @Override
     public float calculateAddedStressCapacity() {
-        if (grantedStress <= 0 || transmittedSpeed == 0.0F) {
-            return 0.0F;
-        }
-        return grantedStress / Math.abs(transmittedSpeed);
+        float capacity = grantedStress <= 0 || isRuntimeStopped(transmittedSpeed)
+            ? 0.0F
+            : grantedStress / Math.abs(transmittedSpeed);
+        lastCapacityProvided = capacity;
+        return capacity;
     }
 
     @Override
     public float calculateStressApplied() {
+        lastStressApplied = 0.0F;
         return 0.0F;
     }
 
@@ -145,11 +150,17 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
     public void applyRuntime(UUID runtimeLinkId, float runtimeSpeed, int runtimeGrantedStress,
                              ReceiverStatus runtimeStatus, LinkAnchor transmitterVisualAnchor) {
         UUID nextLinkId = runtimeLinkId != null ? runtimeLinkId : linkId;
-        boolean changed = transmittedSpeed != runtimeSpeed || grantedStress != runtimeGrantedStress || status != runtimeStatus;
+        float normalizedSpeed = normalizeRuntimeSpeed(runtimeSpeed);
+        int normalizedGrantedStress = normalizedSpeed == 0.0F ? 0 : Math.max(runtimeGrantedStress, 0);
+        ReceiverStatus normalizedStatus = normalizedSpeed == 0.0F && runtimeStatus == ReceiverStatus.ACTIVE
+            ? ReceiverStatus.IDLE
+            : runtimeStatus;
+        boolean enteredSpeedDeadzone = transmittedSpeed != 0.0F && normalizedSpeed == 0.0F;
+        boolean changed = transmittedSpeed != normalizedSpeed || grantedStress != normalizedGrantedStress || status != normalizedStatus;
         linkId = nextLinkId;
-        transmittedSpeed = runtimeSpeed;
-        grantedStress = runtimeGrantedStress;
-        status = runtimeStatus;
+        transmittedSpeed = normalizedSpeed;
+        grantedStress = normalizedGrantedStress;
+        status = normalizedStatus;
 
         if (level != null && !level.isClientSide) {
             changed |= transmitterVisualAnchor == null
@@ -158,7 +169,7 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
             changed |= refreshLinkColor();
         }
 
-        if (changed && level != null && !level.isClientSide) {
+        if ((changed || enteredSpeedDeadzone) && level != null && !level.isClientSide) {
             updateGeneratedRotation();
             setChanged();
             sendData();
@@ -177,6 +188,17 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
             return Integer.toString(Math.round(value));
         }
         return String.format(java.util.Locale.ROOT, "%.2f", value);
+    }
+
+    private static boolean isRuntimeStopped(float speed) {
+        return Math.abs(speed) < MIN_RUNTIME_SPEED;
+    }
+
+    private static float normalizeRuntimeSpeed(float speed) {
+        if (!Float.isFinite(speed) || isRuntimeStopped(speed)) {
+            return 0.0F;
+        }
+        return speed;
     }
 
     public UUID getEndpointId() {
@@ -400,8 +422,8 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
             ? tag.getInt(REQUESTED_STRESS_KEY)
             : (StressboundConfig.defaultRequestedStress > 0 ? StressboundConfig.defaultRequestedStress : 256);
         status = parseStatus(tag);
-        transmittedSpeed = tag.getFloat(TRANSMITTED_SPEED_KEY);
-        grantedStress = tag.getInt(GRANTED_STRESS_KEY);
+        transmittedSpeed = normalizeRuntimeSpeed(tag.getFloat(TRANSMITTED_SPEED_KEY));
+        grantedStress = transmittedSpeed == 0.0F ? 0 : Math.max(tag.getInt(GRANTED_STRESS_KEY), 0);
         reverseOutput = tag.getBoolean(REVERSE_OUTPUT_KEY);
 
         if (tag.contains(TRANSMITTER_POS_KEY)) {
