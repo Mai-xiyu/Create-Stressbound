@@ -78,6 +78,6 @@ public final class MovingStructureSupport {
             + ", simulated=" + isSimulatedLoaded()
             + ", sable=" + isSableLoaded()
             + ", valkyrienskies=" + isValkyrienSkiesLoaded()
-            + ", implemented_anchors=static_block,create_contraption,create_train,aeronautics_heuristic,sable_sublevel_visuals";
+            + ", implemented_anchors=static_block,create_contraption,create_train,aeronautics_heuristic,sable_sublevel_visuals,simulated_torsion_spring_budget";
     }
 }

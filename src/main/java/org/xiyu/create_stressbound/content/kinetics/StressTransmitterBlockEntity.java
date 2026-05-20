@@ -23,6 +23,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.xiyu.create_stressbound.StressboundConfig;
+import org.xiyu.create_stressbound.compat.SimulatedTorsionSpringSupport;
 import org.xiyu.create_stressbound.content.link.LinkAnchor;
 import org.xiyu.create_stressbound.content.link.ReceiverStatus;
 import org.xiyu.create_stressbound.content.link.StressLinkColors;
@@ -230,7 +231,11 @@ public class StressTransmitterBlockEntity extends KineticBlockEntity implements 
         if (hasCreativeSource()) {
             return CREATIVE_SOURCE_STRESS_BUDGET;
         }
-        return Math.max(Math.round(getAvailableStressUnits()), 0);
+        int localBudget = Math.max(Math.round(getAvailableStressUnits()), 0);
+        int torsionInputBudget = SimulatedTorsionSpringSupport
+            .getInputSideStressBudget(this, CREATIVE_SOURCE_STRESS_BUDGET)
+            .orElse(0);
+        return Math.max(localBudget, torsionInputBudget);
     }
 
     public float getNetworkStress() {
@@ -243,7 +248,8 @@ public class StressTransmitterBlockEntity extends KineticBlockEntity implements 
 
     private boolean hasCreativeSource() {
         return hasNetwork() && getOrCreateNetwork().sources.keySet().stream()
-            .anyMatch(CreativeMotorBlockEntity.class::isInstance);
+            .anyMatch(CreativeMotorBlockEntity.class::isInstance)
+            || SimulatedTorsionSpringSupport.hasCreativeInputSource(this);
     }
 
     @Override
