@@ -38,8 +38,10 @@ public class StressTransmitterBlockEntity extends KineticBlockEntity implements 
     public static final String LATCHED_AVAILABLE_STRESS_KEY = "LatchedAvailableStress";
     public static final String LATCHED_POWERED_DISABLED_KEY = "LatchedPoweredDisabled";
     public static final String LATCHED_REMOTE_LOOP_KEY = "LatchedRemoteLoop";
+    private static final String LATCHED_TORSION_SPRING_STRESS_BUDGET_KEY = "LatchedTorsionSpringStressBudget";
 
     private UUID endpointId;
+    private int latchedTorsionSpringStressBudget;
 
     // Client-synced receiver positions for visual rendering
     private List<BlockPos> linkedReceiverPositions = Collections.emptyList();
@@ -235,7 +237,21 @@ public class StressTransmitterBlockEntity extends KineticBlockEntity implements 
         int torsionInputBudget = SimulatedTorsionSpringSupport
             .getInputSideStressBudget(this, CREATIVE_SOURCE_STRESS_BUDGET)
             .orElse(0);
+        if (torsionInputBudget > 0) {
+            latchedTorsionSpringStressBudget = torsionInputBudget;
+        }
+        if (hasActiveSimulatedTorsionSpringOutput() && latchedTorsionSpringStressBudget > 0) {
+            return Math.max(localBudget, latchedTorsionSpringStressBudget);
+        }
         return Math.max(localBudget, torsionInputBudget);
+    }
+
+    public boolean hasActiveSimulatedTorsionSpringOutput() {
+        return SimulatedTorsionSpringSupport.hasActiveTorsionSpringOutput(this);
+    }
+
+    public boolean hasSimulatedTorsionSpringReturnOutput() {
+        return hasActiveSimulatedTorsionSpringOutput();
     }
 
     public float getNetworkStress() {
@@ -276,6 +292,7 @@ public class StressTransmitterBlockEntity extends KineticBlockEntity implements 
         tag.putInt(LATCHED_AVAILABLE_STRESS_KEY, getControlledAvailableStressBudget());
         tag.putBoolean(LATCHED_POWERED_DISABLED_KEY, isPoweredDisabled());
         tag.putBoolean(LATCHED_REMOTE_LOOP_KEY, isRemoteLoopSource());
+        tag.putInt(LATCHED_TORSION_SPRING_STRESS_BUDGET_KEY, latchedTorsionSpringStressBudget);
 
         if (clientPacket) {
             ListTag posList = new ListTag();
@@ -303,6 +320,7 @@ public class StressTransmitterBlockEntity extends KineticBlockEntity implements 
     protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
         super.read(tag, registries, clientPacket);
         endpointId = tag.hasUUID(ENDPOINT_ID_KEY) ? tag.getUUID(ENDPOINT_ID_KEY) : endpointId;
+        latchedTorsionSpringStressBudget = Math.max(tag.getInt(LATCHED_TORSION_SPRING_STRESS_BUDGET_KEY), 0);
 
         // Read linked receiver positions
         if (tag.contains("LinkedReceivers", Tag.TAG_LIST)) {

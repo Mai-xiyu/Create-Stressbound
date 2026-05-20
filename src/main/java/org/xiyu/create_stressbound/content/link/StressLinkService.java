@@ -521,13 +521,18 @@ public final class StressLinkService {
             .mapToLong(ActiveReceiver::reservedStress)
             .sum();
 
-        if (StressboundConfig.strictOverloadMode && totalReservedStress > transmitter.availableStress()) {
+        boolean transientGeneratedBudget = transmitter.transientGeneratedBudget();
+        if (StressboundConfig.strictOverloadMode && !transientGeneratedBudget
+            && totalReservedStress > transmitter.availableStress()) {
             activeReceivers.forEach(active -> active.receiver().applyRuntime(active.record().id(), 0.0F, 0,
                 ReceiverStatus.OVERLOADED, transmitter.visualAnchor()));
             return;
         }
 
-        long remainingStress = transmitter.availableStress();
+        // Simulated torsion spring output has speed while its Create network reports no normal SU capacity.
+        long remainingStress = transientGeneratedBudget
+            ? Math.max(totalReservedStress, transmitter.availableStress())
+            : transmitter.availableStress();
         for (ActiveReceiver activeReceiver : activeReceivers) {
             int reservedStress = activeReceiver.reservedStress();
             if (reservedStress > remainingStress) {
@@ -550,7 +555,7 @@ public final class StressLinkService {
             if (moving.isPresent()) {
                 MovingEndpointRegistry.RuntimeEndpoint endpoint = moving.get();
                 return TransmitterRuntime.active(endpoint.latchedSpeed(), endpoint.latchedAvailableStress(),
-                    endpoint.poweredDisabled(), endpoint.remoteLoop(), endpoint.anchor());
+                    endpoint.poweredDisabled(), endpoint.remoteLoop(), endpoint.anchor(), false);
             }
         }
 
@@ -571,7 +576,8 @@ public final class StressLinkService {
             transmitter.getControlledAvailableStressBudget(),
             transmitter.isPoweredDisabled(),
             transmitter.isRemoteLoopSource(),
-            transmitter.createAnchor()
+            transmitter.createAnchor(),
+            transmitter.hasActiveSimulatedTorsionSpringOutput()
         );
     }
 
@@ -701,17 +707,19 @@ public final class StressLinkService {
     }
 
     private record TransmitterRuntime(Optional<ReceiverStatus> failureStatus, float speed, int availableStress,
-                                      boolean poweredDisabled, boolean remoteLoop, LinkAnchor visualAnchor) {
+                                      boolean poweredDisabled, boolean remoteLoop, LinkAnchor visualAnchor,
+                                      boolean transientGeneratedBudget) {
         static TransmitterRuntime active(float speed, int availableStress, boolean poweredDisabled,
-                                         boolean remoteLoop, LinkAnchor visualAnchor) {
+                                         boolean remoteLoop, LinkAnchor visualAnchor,
+                                         boolean transientGeneratedBudget) {
             float normalizedSpeed = normalizeRuntimeSpeed(speed);
             int normalizedStress = normalizedSpeed == 0.0F ? 0 : Math.max(availableStress, 0);
             return new TransmitterRuntime(Optional.empty(), normalizedSpeed, normalizedStress,
-                poweredDisabled, remoteLoop, visualAnchor);
+                poweredDisabled, remoteLoop, visualAnchor, transientGeneratedBudget && normalizedSpeed != 0.0F);
         }
 
         static TransmitterRuntime failure(ReceiverStatus status) {
-            return new TransmitterRuntime(Optional.of(status), 0.0F, 0, false, false, null);
+            return new TransmitterRuntime(Optional.of(status), 0.0F, 0, false, false, null, false);
         }
     }
 

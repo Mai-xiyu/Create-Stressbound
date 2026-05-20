@@ -1,6 +1,7 @@
 package org.xiyu.create_stressbound.content.kinetics;
 
 import com.simibubi.create.content.kinetics.base.GeneratingKineticBlockEntity;
+import com.simibubi.create.content.kinetics.KineticNetwork;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -106,6 +107,14 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
     }
 
     @Override
+    public void tick() {
+        super.tick();
+        if (shouldRefreshNativeOverstressState()) {
+            refreshNativeOverstressState();
+        }
+    }
+
+    @Override
     public boolean addToGoggleTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
         tooltip.add(Component.translatable("goggle.create_stressbound.header")
             .withStyle(ChatFormatting.GOLD));
@@ -150,6 +159,7 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
     public void applyRuntime(UUID runtimeLinkId, float runtimeSpeed, int runtimeGrantedStress,
                              ReceiverStatus runtimeStatus, LinkAnchor transmitterVisualAnchor) {
         UUID nextLinkId = runtimeLinkId != null ? runtimeLinkId : linkId;
+        float previousGeneratedSpeed = getGeneratedSpeed();
         float normalizedSpeed = normalizeRuntimeSpeed(runtimeSpeed);
         int normalizedGrantedStress = normalizedSpeed == 0.0F ? 0 : Math.max(runtimeGrantedStress, 0);
         ReceiverStatus normalizedStatus = normalizedSpeed == 0.0F && runtimeStatus == ReceiverStatus.ACTIVE
@@ -161,6 +171,11 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
         transmittedSpeed = normalizedSpeed;
         grantedStress = normalizedGrantedStress;
         status = normalizedStatus;
+        float nextGeneratedSpeed = getGeneratedSpeed();
+        boolean generatedDirectionChanged = hasActiveRemoteRuntime(normalizedSpeed, normalizedGrantedStress, normalizedStatus)
+            && previousGeneratedSpeed != 0.0F
+            && nextGeneratedSpeed != 0.0F
+            && Math.signum(previousGeneratedSpeed) != Math.signum(nextGeneratedSpeed);
 
         if (level != null && !level.isClientSide) {
             changed |= transmitterVisualAnchor == null
@@ -171,6 +186,9 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
 
         if ((changed || enteredSpeedDeadzone) && level != null && !level.isClientSide) {
             updateGeneratedRotation();
+            if (generatedDirectionChanged) {
+                refreshNativeOverstressState();
+            }
             setChanged();
             sendData();
         }
@@ -199,6 +217,25 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
             return 0.0F;
         }
         return speed;
+    }
+
+    private boolean shouldRefreshNativeOverstressState() {
+        return level != null
+            && !level.isClientSide
+            && isOverStressed()
+            && hasActiveRemoteRuntime(transmittedSpeed, grantedStress, status);
+    }
+
+    private boolean hasActiveRemoteRuntime(float speed, int stress, ReceiverStatus status) {
+        return status == ReceiverStatus.ACTIVE && stress > 0 && !isRuntimeStopped(speed);
+    }
+
+    private void refreshNativeOverstressState() {
+        if (level == null || level.isClientSide || !hasNetwork()) {
+            return;
+        }
+        KineticNetwork network = getOrCreateNetwork();
+        updateFromNetwork(network.calculateCapacity(), network.calculateStress(), network.getSize());
     }
 
     public UUID getEndpointId() {

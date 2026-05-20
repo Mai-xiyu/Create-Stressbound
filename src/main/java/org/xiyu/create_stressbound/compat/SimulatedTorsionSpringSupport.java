@@ -1,6 +1,7 @@
 package org.xiyu.create_stressbound.compat;
 
 import com.simibubi.create.content.kinetics.KineticNetwork;
+import com.simibubi.create.content.kinetics.base.GeneratingKineticBlockEntity;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.motor.CreativeMotorBlockEntity;
 import java.lang.reflect.InvocationTargetException;
@@ -8,6 +9,7 @@ import java.lang.reflect.Method;
 import java.util.OptionalInt;
 
 public final class SimulatedTorsionSpringSupport {
+    private static final float MIN_ACTIVE_SPEED = 0.01F;
     private static final String TORSION_OUTPUT_CLASS =
         "dev.simulated_team.simulated.content.blocks.torsion_spring.TorsionSpringBlockEntity$Output";
 
@@ -34,15 +36,40 @@ public final class SimulatedTorsionSpringSupport {
         return parent != null && parent.hasNetwork() && hasCreativeSource(parent.getOrCreateNetwork());
     }
 
+    public static boolean isActiveReturnOutput(KineticBlockEntity blockEntity) {
+        return hasActiveTorsionSpringOutput(blockEntity);
+    }
+
+    public static boolean hasActiveTorsionSpringOutput(KineticBlockEntity blockEntity) {
+        KineticBlockEntity output = findTorsionSpringOutput(blockEntity);
+        if (output == null || output.isOverStressed()) {
+            return false;
+        }
+
+        KineticBlockEntity parent = getTorsionSpringParent(output);
+        if (parent == null || parent.isOverStressed()) {
+            return false;
+        }
+
+        return isActiveSpeed(getGeneratedSpeed(output))
+            || isActiveSpeed(output.getSpeed())
+            || isActiveSpeed(output.getTheoreticalSpeed())
+            || isActiveSpeed(getFloatField(output, "queuedSpeed"));
+    }
+
     private static KineticBlockEntity findTorsionSpringParent(KineticBlockEntity blockEntity) {
+        KineticBlockEntity output = findTorsionSpringOutput(blockEntity);
+        return output == null ? null : getTorsionSpringParent(output);
+    }
+
+    private static KineticBlockEntity findTorsionSpringOutput(KineticBlockEntity blockEntity) {
         if (!isSimulatedCompatLoaded() || blockEntity == null || !blockEntity.hasNetwork()) {
             return null;
         }
 
         for (KineticBlockEntity source : blockEntity.getOrCreateNetwork().sources.keySet()) {
-            KineticBlockEntity parent = getTorsionSpringParent(source);
-            if (parent != null) {
-                return parent;
+            if (isTorsionSpringOutput(source)) {
+                return source;
             }
         }
         return null;
@@ -70,6 +97,26 @@ public final class SimulatedTorsionSpringSupport {
 
     private static boolean hasCreativeSource(KineticNetwork network) {
         return network.sources.keySet().stream().anyMatch(CreativeMotorBlockEntity.class::isInstance);
+    }
+
+    private static float getGeneratedSpeed(KineticBlockEntity blockEntity) {
+        return blockEntity instanceof GeneratingKineticBlockEntity generator
+            ? generator.getGeneratedSpeed()
+            : blockEntity.getTheoreticalSpeed();
+    }
+
+    private static float getFloatField(Object target, String fieldName) {
+        try {
+            java.lang.reflect.Field field = target.getClass().getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field.getFloat(target);
+        } catch (IllegalAccessException | NoSuchFieldException | RuntimeException | LinkageError ignored) {
+            return 0.0F;
+        }
+    }
+
+    private static boolean isActiveSpeed(float speed) {
+        return Float.isFinite(speed) && Math.abs(speed) >= MIN_ACTIVE_SPEED;
     }
 
     private static boolean isSimulatedCompatLoaded() {
