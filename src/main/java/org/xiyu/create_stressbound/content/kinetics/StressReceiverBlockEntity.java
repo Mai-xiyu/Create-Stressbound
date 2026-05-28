@@ -31,6 +31,8 @@ import org.xiyu.create_stressbound.registry.StressboundBlockEntities;
 public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity implements MenuProvider {
     public static final String ENDPOINT_ID_KEY = "EndpointId";
     private static final float MIN_RUNTIME_SPEED = 0.01F;
+    private static final int LEGACY_DEFAULT_REQUESTED_STRESS = 256;
+    private static final int UNSET_REQUESTED_STRESS = 0;
     private static final String LINK_ID_KEY = "LinkId";
     private static final String REQUESTED_STRESS_KEY = "RequestedStress";
     private static final String STATUS_KEY = "ReceiverStatus";
@@ -45,7 +47,7 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
 
     private UUID endpointId;
     private UUID linkId;
-    private int requestedStress = 256;
+    private int requestedStress = UNSET_REQUESTED_STRESS;
     private float transmittedSpeed;
     private int grantedStress;
     private ReceiverStatus status = ReceiverStatus.IDLE;
@@ -196,9 +198,13 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
 
     public void clearLink() {
         linkId = null;
-        requestedStress = StressboundConfig.defaultRequestedStress > 0 ? StressboundConfig.defaultRequestedStress : 256;
+        requestedStress = defaultRequestedStress();
         linkColor = StressLinkColors.DEFAULT;
         applyRuntime(null, 0.0F, 0, ReceiverStatus.IDLE);
+        if (level != null && !level.isClientSide) {
+            setChanged();
+            sendData();
+        }
     }
 
     private static String format(float value) {
@@ -263,12 +269,17 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
     }
 
     public int getRequestedStress() {
-        return StressboundConfig.clampRequestedStress(requestedStress);
+        return requestedStress > UNSET_REQUESTED_STRESS
+            ? StressboundConfig.clampRequestedStress(requestedStress)
+            : defaultRequestedStress();
     }
 
     public void setRequestedStress(int requestedStress) {
         this.requestedStress = StressboundConfig.clampRequestedStress(requestedStress);
         setChanged();
+        if (level != null && !level.isClientSide) {
+            sendData();
+        }
     }
 
     public ReceiverStatus getStatus() {
@@ -429,7 +440,7 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
         if (linkId != null) {
             tag.putUUID(LINK_ID_KEY, linkId);
         }
-        tag.putInt(REQUESTED_STRESS_KEY, requestedStress);
+        tag.putInt(REQUESTED_STRESS_KEY, getRequestedStress());
         tag.putString(STATUS_KEY, status.name());
         tag.putFloat(TRANSMITTED_SPEED_KEY, transmittedSpeed);
         tag.putInt(GRANTED_STRESS_KEY, grantedStress);
@@ -456,8 +467,8 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
         endpointId = tag.hasUUID(ENDPOINT_ID_KEY) ? tag.getUUID(ENDPOINT_ID_KEY) : endpointId;
         linkId = tag.hasUUID(LINK_ID_KEY) ? tag.getUUID(LINK_ID_KEY) : null;
         requestedStress = tag.contains(REQUESTED_STRESS_KEY)
-            ? tag.getInt(REQUESTED_STRESS_KEY)
-            : (StressboundConfig.defaultRequestedStress > 0 ? StressboundConfig.defaultRequestedStress : 256);
+            ? Math.max(tag.getInt(REQUESTED_STRESS_KEY), UNSET_REQUESTED_STRESS)
+            : UNSET_REQUESTED_STRESS;
         status = parseStatus(tag);
         transmittedSpeed = normalizeRuntimeSpeed(tag.getFloat(TRANSMITTED_SPEED_KEY));
         grantedStress = transmittedSpeed == 0.0F ? 0 : Math.max(tag.getInt(GRANTED_STRESS_KEY), 0);
@@ -498,5 +509,12 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
         } catch (RuntimeException ignored) {
             return null;
         }
+    }
+
+    private static int defaultRequestedStress() {
+        int configured = StressboundConfig.defaultRequestedStress > 0
+            ? StressboundConfig.defaultRequestedStress
+            : LEGACY_DEFAULT_REQUESTED_STRESS;
+        return StressboundConfig.clampRequestedStress(configured);
     }
 }
