@@ -1,5 +1,6 @@
 package org.xiyu.create_stressbound.client.gui;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import net.minecraft.client.Minecraft;
@@ -16,6 +17,7 @@ import org.xiyu.create_stressbound.StressboundConfig;
 import org.xiyu.create_stressbound.content.kinetics.StressTransmitterBlockEntity;
 import org.xiyu.create_stressbound.content.link.StressLinkColors;
 import org.xiyu.create_stressbound.network.SetLinkColorPacket;
+import org.xiyu.create_stressbound.network.SetLinkStressPacket;
 
 public class TransmitterScreen extends AbstractContainerScreen<TransmitterMenu> {
     private static final int PANEL_W = 226;
@@ -24,10 +26,15 @@ public class TransmitterScreen extends AbstractContainerScreen<TransmitterMenu> 
     private static final int ROW_H = 20;
     private static final int MIN_VISIBLE_ROWS = 2;
     private static final int MAX_VISIBLE_ROWS = 8;
-    private static final int BOTTOM_AREA_H = 62;
+    private static final int BOTTOM_AREA_H = 84;
     private static final int SWATCH = 8;
     private static final int SWATCH_GAP = 3;
     private static final int PALETTE_COLS = 12;
+    private static final int STRESS_BUTTON_W = 44;
+    private static final int STRESS_BUTTON_H = 16;
+    private static final int STRESS_BUTTON_GAP = 4;
+    private static final int AUTO_BUTTON_W = 66;
+    private static final int AUTO_BUTTON_H = 16;
 
     private static final int BG_PANEL = 0xFF_2A2A3C;
     private static final int HEADER_BG = 0xFF_33334A;
@@ -41,13 +48,13 @@ public class TransmitterScreen extends AbstractContainerScreen<TransmitterMenu> 
     private static final int SELECTED_BG = 0x55_55CCEE;
     private static final int ROW_BG = 0x33_000000;
     private static final int ROW_HOVER = 0x44_FFD369;
-    private static final int BADGE_BG = 0xFF_15151F;
 
     private final BlockPos blockPos;
     private UUID selectedLinkId;
     private int scrollOffset;
     private int visibleRows = 4;
     private Button autoButton;
+    private final List<Button> stressButtons = new ArrayList<>();
 
     public TransmitterScreen(TransmitterMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
@@ -61,14 +68,20 @@ public class TransmitterScreen extends AbstractContainerScreen<TransmitterMenu> 
         visibleRows = computeVisibleRows();
         imageHeight = ROW_START_Y + visibleRows * ROW_H + BOTTOM_AREA_H;
         super.init();
+        stressButtons.clear();
+        addStressButton(0, "-1k", -1024);
+        addStressButton(1, "-256", -256);
+        addStressButton(2, "+256", 256);
+        addStressButton(3, "+1k", 1024);
+
         autoButton = Button.builder(Component.translatable("gui.create_stressbound.transmitter.auto_color"), button -> {
                 StressTransmitterBlockEntity.LinkedReceiverInfo selected = selectedInfo();
                 if (selected != null) {
                     PacketDistributor.sendToServer(new SetLinkColorPacket(blockPos, selected.linkId(), 0, true));
                 }
             })
-            .pos(leftPos + PANEL_W - 74, topPos + imageHeight - 23)
-            .size(64, 16)
+            .pos(leftPos + PANEL_W - PAD - AUTO_BUTTON_W, paletteLabelY() - 4)
+            .size(AUTO_BUTTON_W, AUTO_BUTTON_H)
             .tooltip(Tooltip.create(Component.translatable("gui.create_stressbound.transmitter.auto_color.tooltip")))
             .build();
         addRenderableWidget(autoButton);
@@ -77,8 +90,12 @@ public class TransmitterScreen extends AbstractContainerScreen<TransmitterMenu> 
     @Override
     public void render(GuiGraphics g, int mx, int my, float pt) {
         updateSelection();
+        boolean hasSelected = selectedInfo() != null;
+        for (Button button : stressButtons) {
+            button.active = hasSelected;
+        }
         if (autoButton != null) {
-            autoButton.active = selectedInfo() != null;
+            autoButton.active = hasSelected;
         }
         super.render(g, mx, my, pt);
         renderTooltip(g, mx, my);
@@ -144,7 +161,6 @@ public class TransmitterScreen extends AbstractContainerScreen<TransmitterMenu> 
     }
 
     private void drawContent(GuiGraphics g, int mx, int my) {
-        StressTransmitterBlockEntity transmitter = transmitter();
         List<StressTransmitterBlockEntity.LinkedReceiverInfo> infos = infos();
         int x = leftPos + PAD;
         int y = topPos + 23;
@@ -175,9 +191,9 @@ public class TransmitterScreen extends AbstractContainerScreen<TransmitterMenu> 
             drawColorSwatch(g, rowX + 4, ry + 4, info.color(), selected);
 
             String pos = "[" + info.receiverPos().getX() + ", " + info.receiverPos().getY() + ", " + info.receiverPos().getZ() + "]";
-            g.drawString(font, pos, rowX + 22, ry + 4, VALUE_COLOR);
             Component status = Component.translatable(info.status().translationKey());
             int statusX = leftPos + PANEL_W - PAD - font.width(status) - 4;
+            drawTrimmedString(g, pos, rowX + 22, ry + 4, VALUE_COLOR, statusX - rowX - 26);
             g.drawString(font, status, statusX, ry + 4, statusColor(info.status()));
             g.drawString(font, Component.translatable("gui.create_stressbound.transmitter.requested", info.requestedStress()),
                 rowX + 22, ry + 13, DIM_COLOR);
@@ -188,23 +204,32 @@ public class TransmitterScreen extends AbstractContainerScreen<TransmitterMenu> 
                 leftPos + PANEL_W / 2, topPos + ROW_START_Y + ROW_H * Math.max(1, visibleRows / 2), DIM_COLOR);
         }
 
-        int paletteY = topPos + imageHeight - 42;
-        g.drawString(font, Component.translatable("gui.create_stressbound.transmitter.palette"),
-            x, paletteY - 11, LABEL_COLOR);
-        drawPalette(g);
+        drawStressControls(g, selectedInfo());
 
-        int transmitterColor = transmitterColor();
-        if (transmitterColor >= 0 && transmitter != null) {
-            Component color = Component.literal(StressLinkColors.hex(transmitterColor));
-            g.fill(leftPos + PANEL_W - 70, paletteY - 12, leftPos + PANEL_W - 10, paletteY - 1, BADGE_BG);
-            g.drawCenteredString(font, color, leftPos + PANEL_W - 40, paletteY - 10, 0xFF000000 | transmitterColor);
+        int listBottom = listBottomY();
+        g.fill(x, listBottom + 4, leftPos + PANEL_W - PAD, listBottom + 5, DIVIDER);
+
+        int paletteY = paletteLabelY();
+        g.drawString(font, Component.translatable("gui.create_stressbound.transmitter.palette"),
+            x, paletteY, LABEL_COLOR);
+        drawPalette(g);
+    }
+
+    private void drawStressControls(GuiGraphics g, StressTransmitterBlockEntity.LinkedReceiverInfo selected) {
+        int y = stressLabelY();
+        g.drawString(font, Component.translatable("gui.create_stressbound.transmitter.stress"),
+            leftPos + PAD, y, LABEL_COLOR);
+        if (selected != null) {
+            Component value = Component.translatable(
+                "gui.create_stressbound.transmitter.stress.value", selected.requestedStress());
+            g.drawString(font, value, leftPos + PANEL_W - PAD - font.width(value), y, VALUE_COLOR);
         }
     }
 
     private void drawPalette(GuiGraphics g) {
         int transmitterColor = transmitterColor();
         int startX = leftPos + PAD;
-        int startY = topPos + imageHeight - 39;
+        int startY = paletteStartY();
         for (int i = 0; i < StressLinkColors.PALETTE.length; i++) {
             int color = StressLinkColors.normalize(StressLinkColors.PALETTE[i]);
             int col = i % PALETTE_COLS;
@@ -223,6 +248,22 @@ public class TransmitterScreen extends AbstractContainerScreen<TransmitterMenu> 
         g.fill(x, y + SWATCH - 1, x + SWATCH, y + SWATCH, 0x66_000000);
     }
 
+    private void drawTrimmedString(GuiGraphics g, String text, int x, int y, int color, int maxWidth) {
+        if (maxWidth <= 0) {
+            return;
+        }
+        String display = text;
+        if (font.width(display) > maxWidth) {
+            int ellipsisWidth = font.width("...");
+            display = maxWidth <= ellipsisWidth
+                ? ""
+                : font.plainSubstrByWidth(display, maxWidth - ellipsisWidth) + "...";
+        }
+        if (!display.isEmpty()) {
+            g.drawString(font, display, x, y, color);
+        }
+    }
+
     private int rowAt(double mouseX, double mouseY) {
         int x0 = leftPos + PAD;
         int x1 = leftPos + PANEL_W - PAD;
@@ -236,7 +277,7 @@ public class TransmitterScreen extends AbstractContainerScreen<TransmitterMenu> 
 
     private int paletteColorAt(double mouseX, double mouseY) {
         int startX = leftPos + PAD;
-        int startY = topPos + imageHeight - 39;
+        int startY = paletteStartY();
         for (int i = 0; i < StressLinkColors.PALETTE.length; i++) {
             int col = i % PALETTE_COLS;
             int row = i / PALETTE_COLS;
@@ -291,6 +332,62 @@ public class TransmitterScreen extends AbstractContainerScreen<TransmitterMenu> 
             return StressLinkColors.normalize(info.color());
         }
         return -1;
+    }
+
+    private void addStressButton(int index, String label, int delta) {
+        int x = leftPos + PAD + index * (STRESS_BUTTON_W + STRESS_BUTTON_GAP);
+        Button button = Button.builder(Component.literal(label), ignored -> adjustSelectedStress(delta))
+            .pos(x, stressButtonY())
+            .size(STRESS_BUTTON_W, STRESS_BUTTON_H)
+            .tooltip(Tooltip.create(Component.translatable(
+                "gui.create_stressbound.transmitter.stress.tooltip", signed(delta))))
+            .build();
+        stressButtons.add(button);
+        addRenderableWidget(button);
+    }
+
+    private int stressButtonY() {
+        return listBottomY() + 22;
+    }
+
+    private int stressLabelY() {
+        return listBottomY() + 9;
+    }
+
+    private int paletteLabelY() {
+        return listBottomY() + 47;
+    }
+
+    private int paletteStartY() {
+        return listBottomY() + 61;
+    }
+
+    private int listBottomY() {
+        return topPos + ROW_START_Y + visibleRows * ROW_H;
+    }
+
+    private void adjustSelectedStress(int delta) {
+        StressTransmitterBlockEntity.LinkedReceiverInfo selected = selectedInfo();
+        if (selected == null) {
+            return;
+        }
+        PacketDistributor.sendToServer(new SetLinkStressPacket(blockPos, selected.linkId(),
+            addStressDelta(selected.requestedStress(), delta)));
+    }
+
+    private static int addStressDelta(int requestedStress, int delta) {
+        long adjusted = (long) requestedStress + delta;
+        if (adjusted < 1L) {
+            return 1;
+        }
+        if (adjusted > Integer.MAX_VALUE) {
+            return Integer.MAX_VALUE;
+        }
+        return (int) adjusted;
+    }
+
+    private static String signed(int value) {
+        return value > 0 ? "+" + value : Integer.toString(value);
     }
 
     private int computeVisibleRows() {

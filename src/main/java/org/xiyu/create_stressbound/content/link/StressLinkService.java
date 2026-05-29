@@ -49,6 +49,10 @@ public final class StressLinkService {
         }
     }
 
+    public static void syncClientVisualsNow(MinecraftServer server) {
+        syncClientVisuals(server);
+    }
+
     private static int evaluationInterval() {
         int interval = Math.max(1, StressboundConfig.evaluationIntervalTicks);
         if (StressboundConfig.transmitterPoweredStops || StressboundConfig.receiverPoweredStops) {
@@ -201,6 +205,39 @@ public final class StressLinkService {
         return true;
     }
 
+    public static boolean removeLinksForRemovedReceiver(ServerLevel level, StressReceiverBlockEntity receiver) {
+        StressLinkSavedData data = StressLinkSavedData.get(level.getServer());
+        List<StressLinkRecord> records = data.all().stream()
+            .filter(record -> sameStaticBlock(record.receiver(), level.dimension(), receiver.getBlockPos())
+                || (receiver.getLinkId() != null && record.id().equals(receiver.getLinkId())))
+            .toList();
+        if (records.isEmpty()) {
+            return false;
+        }
+
+        records.forEach(record -> data.remove(record.id()));
+        receiver.clearLink();
+        records.forEach(record -> getStaticTransmitter(level.getServer(), record.transmitter())
+            .ifPresent(StressTransmitterBlockEntity::refreshLinkedReceiverVisuals));
+        return true;
+    }
+
+    public static boolean removeLinksForRemovedTransmitter(ServerLevel level, StressTransmitterBlockEntity transmitter) {
+        StressLinkSavedData data = StressLinkSavedData.get(level.getServer());
+        List<StressLinkRecord> records = data.all().stream()
+            .filter(record -> sameStaticBlock(record.transmitter(), level.dimension(), transmitter.getBlockPos()))
+            .toList();
+        if (records.isEmpty()) {
+            return false;
+        }
+
+        records.forEach(record -> {
+            data.remove(record.id());
+            getStaticReceiver(level.getServer(), record.receiver()).ifPresent(StressReceiverBlockEntity::clearLink);
+        });
+        return true;
+    }
+
     public static int removeLinksByOwner(MinecraftServer server, UUID owner) {
         StressLinkSavedData data = StressLinkSavedData.get(server);
         List<UUID> ids = data.all().stream()
@@ -223,8 +260,24 @@ public final class StressLinkService {
             return Optional.empty();
         }
 
+        return setRequestedStress(server, data, existing.get(), requestedStress);
+    }
+
+    public static Optional<StressLinkRecord> setRequestedStress(MinecraftServer server, LinkAnchor transmitter,
+                                                               UUID linkId, int requestedStress) {
+        StressLinkSavedData data = StressLinkSavedData.get(server);
+        Optional<StressLinkRecord> existing = data.get(linkId);
+        if (existing.isEmpty() || !matchesSameEndpointOrStaticPosition(existing.get().transmitter(), transmitter)) {
+            return Optional.empty();
+        }
+
+        return setRequestedStress(server, data, existing.get(), requestedStress);
+    }
+
+    private static Optional<StressLinkRecord> setRequestedStress(MinecraftServer server, StressLinkSavedData data,
+                                                                 StressLinkRecord existing, int requestedStress) {
         int clampedStress = StressboundConfig.clampRequestedStress(requestedStress);
-        StressLinkRecord updated = existing.get().withRequestedStress(clampedStress);
+        StressLinkRecord updated = existing.withRequestedStress(clampedStress);
         data.put(updated);
         getStaticReceiver(server, updated.receiver()).ifPresent(receiver -> receiver.setRequestedStress(clampedStress));
         getStaticTransmitter(server, updated.transmitter()).ifPresent(StressTransmitterBlockEntity::refreshLinkedReceiverVisuals);
@@ -658,6 +711,12 @@ public final class StressLinkService {
         return stored.isStaticBlock()
             && stored.dimensionId().equals(fresh.dimensionId())
             && stored.pos().equals(fresh.pos());
+    }
+
+    private static boolean sameStaticBlock(LinkAnchor anchor, ResourceKey<Level> dimension, BlockPos pos) {
+        return anchor.isStaticBlock()
+            && anchor.dimensionId().equals(dimension.location())
+            && anchor.pos().equals(pos);
     }
 
     private static float normalizeRuntimeSpeed(float speed) {

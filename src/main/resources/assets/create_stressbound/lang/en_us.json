@@ -102,9 +102,13 @@
   "gui.create_stressbound.transmitter.scroll": "%s-%s / %s",
   "gui.create_stressbound.transmitter.no_links": "No receivers bound",
   "gui.create_stressbound.transmitter.requested": "%s SU reserved",
+  "gui.create_stressbound.transmitter.stress": "Reserved SU",
+  "gui.create_stressbound.transmitter.stress.value": "%s SU",
+  "gui.create_stressbound.transmitter.stress.tooltip": "Adjust selected receiver by %s SU.",
   "gui.create_stressbound.transmitter.palette": "Transmitter Line Color",
   "gui.create_stressbound.transmitter.auto_color": "Cycle Color",
   "gui.create_stressbound.transmitter.auto_color.tooltip": "Assign the next unused transmitter color. All receiver lines from this transmitter use it.",
   "message.create_stressbound.color.duplicate": "%s is already used by another transmitter.",
-  "message.create_stressbound.color.not_found": "That stress link no longer exists."
+  "message.create_stressbound.color.not_found": "That stress link no longer exists.",
+  "message.create_stressbound.stress.not_found": "That stress link no longer exists."
 }

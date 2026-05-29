@@ -101,9 +101,13 @@
   "gui.create_stressbound.transmitter.scroll": "%s-%s / %s",
   "gui.create_stressbound.transmitter.no_links": "暂无绑定的接收端",
   "gui.create_stressbound.transmitter.requested": "预留 %s SU",
+  "gui.create_stressbound.transmitter.stress": "预留 SU",
+  "gui.create_stressbound.transmitter.stress.value": "%s SU",
+  "gui.create_stressbound.transmitter.stress.tooltip": "调整选中接收端：%s SU。",
   "gui.create_stressbound.transmitter.palette": "发送端线色",
   "gui.create_stressbound.transmitter.auto_color": "切换线色",
   "gui.create_stressbound.transmitter.auto_color.tooltip": "分配下一个未使用的发送端颜色；该发送端连出的所有线都会使用它。",
   "message.create_stressbound.color.duplicate": "%s 已被其他发送端使用。",
-  "message.create_stressbound.color.not_found": "这条应力链路已经不存在。"
+  "message.create_stressbound.color.not_found": "这条应力链路已经不存在。",
+  "message.create_stressbound.stress.not_found": "这条应力链路已经不存在。"
 }

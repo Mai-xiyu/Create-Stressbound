@@ -38,11 +38,11 @@ public final class StressboundConfig {
         .defineInRange("limits.maxReceiversPerTransmitter", 8, 1, 256);
 
     private static final ModConfigSpec.IntValue MAX_STRESS_PER_LINK = BUILDER
-        .comment("Hard cap for one receiver's reserved SU budget. Use -1 for unlimited. | 单个接收端预留 SU 的硬上限，设为 -1 表示无限制。")
+        .comment("Hard cap for one receiver's reserved SU budget. Use -1 for unlimited. Also caps the effective defaultRequestedStress. | 单个接收端预留 SU 的硬上限，设为 -1 表示无限制；同时会限制 defaultRequestedStress 的实际生效值。")
         .defineInRange("limits.maxStressPerLink", 512, -1, Integer.MAX_VALUE);
 
     private static final ModConfigSpec.IntValue DEFAULT_REQUESTED_STRESS = BUILDER
-        .comment("Default reserved SU budget assigned to a new receiver. | 新接收端默认预留的 SU 预算。")
+        .comment("Default reserved SU budget assigned to a new receiver. If it is above maxStressPerLink, the effective value is capped. | 新接收端默认预留的 SU 预算；若高于 maxStressPerLink，实际生效值会被上限截断。")
         .defineInRange("limits.defaultRequestedStress", 256, 1, Integer.MAX_VALUE);
 
     private static final ModConfigSpec.IntValue EVALUATION_INTERVAL_TICKS = BUILDER

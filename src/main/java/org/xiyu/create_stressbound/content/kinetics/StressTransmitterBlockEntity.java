@@ -25,8 +25,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.xiyu.create_stressbound.StressboundConfig;
 import org.xiyu.create_stressbound.compat.SimulatedTorsionSpringSupport;
 import org.xiyu.create_stressbound.content.link.LinkAnchor;
+import org.xiyu.create_stressbound.content.link.MovingEndpointRegistry;
 import org.xiyu.create_stressbound.content.link.ReceiverStatus;
 import org.xiyu.create_stressbound.content.link.StressLinkColors;
+import org.xiyu.create_stressbound.content.link.StressLinkRecord;
 import org.xiyu.create_stressbound.content.link.StressLinkSavedData;
 import org.xiyu.create_stressbound.content.link.StressLinkService;
 import org.xiyu.create_stressbound.registry.StressboundBlockEntities;
@@ -125,11 +127,18 @@ public class StressTransmitterBlockEntity extends KineticBlockEntity implements 
             return;
         }
         LinkAnchor anchor = createAnchor();
-        List<org.xiyu.create_stressbound.content.link.StressLinkRecord> records =
-            StressLinkSavedData.get(serverLevel.getServer()).findByTransmitter(anchor);
+        StressLinkSavedData data = StressLinkSavedData.get(serverLevel.getServer());
+        List<StressLinkRecord> records = data.findByTransmitter(anchor);
         List<BlockPos> positions = new ArrayList<>();
         List<LinkedReceiverInfo> infos = new ArrayList<>();
-        for (org.xiyu.create_stressbound.content.link.StressLinkRecord record : records) {
+        boolean removedStaleRecord = false;
+        for (StressLinkRecord record : records) {
+            if (!isDisplayableReceiverRecord(serverLevel.getServer(), record)) {
+                data.remove(record.id());
+                removedStaleRecord = true;
+                continue;
+            }
+
             LinkAnchor receiver = record.receiver();
             if (receiver.dimensionKey().equals(level.dimension())) {
                 positions.add(receiver.pos());
@@ -140,11 +149,14 @@ public class StressTransmitterBlockEntity extends KineticBlockEntity implements 
                 receiver.dimensionKey(),
                 record.requestedStress(),
                 StressLinkColors.normalize(record.color()),
-                resolveReceiverStatus(serverLevel.getServer(), receiver)
+                resolveReceiverStatus(serverLevel.getServer(), record)
             ));
         }
         linkedReceiverPositions = Collections.unmodifiableList(positions);
         linkedReceiverInfos = Collections.unmodifiableList(infos);
+        if (removedStaleRecord) {
+            StressLinkService.syncClientVisualsNow(serverLevel.getServer());
+        }
     }
 
     @Override
@@ -354,7 +366,36 @@ public class StressTransmitterBlockEntity extends KineticBlockEntity implements 
         }
     }
 
-    private ReceiverStatus resolveReceiverStatus(net.minecraft.server.MinecraftServer server, LinkAnchor receiver) {
+    private boolean isDisplayableReceiverRecord(net.minecraft.server.MinecraftServer server, StressLinkRecord record) {
+        LinkAnchor receiver = record.receiver();
+        if (receiver.endpointId().isPresent()
+            && MovingEndpointRegistry.get(server).get(receiver.endpointId().get())
+                .filter(MovingEndpointRegistry.RuntimeEndpoint::isReceiver)
+                .isPresent()) {
+            return true;
+        }
+        if (!receiver.isStaticBlock()) {
+            return true;
+        }
+        net.minecraft.server.level.ServerLevel serverLevel = server.getLevel(receiver.dimensionKey());
+        if (serverLevel == null) {
+            return false;
+        }
+        if (!serverLevel.isLoaded(receiver.pos())) {
+            return true;
+        }
+        BlockEntity blockEntity = serverLevel.getBlockEntity(receiver.pos());
+        if (!(blockEntity instanceof StressReceiverBlockEntity receiverBlockEntity)) {
+            return false;
+        }
+        if (receiver.endpointId().isPresent() && !receiver.endpointId().get().equals(receiverBlockEntity.getEndpointId())) {
+            return false;
+        }
+        return record.id().equals(receiverBlockEntity.getLinkId());
+    }
+
+    private ReceiverStatus resolveReceiverStatus(net.minecraft.server.MinecraftServer server, StressLinkRecord record) {
+        LinkAnchor receiver = record.receiver();
         if (!receiver.isStaticBlock()) {
             return ReceiverStatus.IDLE;
         }
@@ -367,7 +408,9 @@ public class StressTransmitterBlockEntity extends KineticBlockEntity implements 
         }
         BlockEntity blockEntity = serverLevel.getBlockEntity(receiver.pos());
         if (blockEntity instanceof StressReceiverBlockEntity receiverBlockEntity) {
-            return receiverBlockEntity.getStatus();
+            return record.id().equals(receiverBlockEntity.getLinkId())
+                ? receiverBlockEntity.getStatus()
+                : ReceiverStatus.INVALID_RECEIVER;
         }
         return ReceiverStatus.INVALID_RECEIVER;
     }
