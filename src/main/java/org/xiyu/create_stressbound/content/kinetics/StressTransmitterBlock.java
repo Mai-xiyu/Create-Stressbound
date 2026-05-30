@@ -70,7 +70,10 @@ public class StressTransmitterBlock extends DirectionalKineticBlock implements I
         if (level.isClientSide) {
             return InteractionResult.SUCCESS;
         }
-        withBlockEntityDo(level, pos, be -> player.openMenu(be, pos));
+        withBlockEntityDo(level, pos, be -> {
+            be.refreshLinkedReceiverVisuals();
+            player.openMenu(be, pos);
+        });
         return InteractionResult.SUCCESS;
     }
 }

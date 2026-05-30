@@ -53,6 +53,15 @@ public final class StressLinkService {
         syncClientVisuals(server);
     }
 
+    public static void refreshTransmitterVisualsForLink(MinecraftServer server, UUID linkId) {
+        if (linkId == null) {
+            return;
+        }
+        StressLinkSavedData.get(server).get(linkId)
+            .flatMap(record -> getStaticTransmitter(server, record.transmitter()))
+            .ifPresent(StressTransmitterBlockEntity::refreshLinkedReceiverVisuals);
+    }
+
     private static int evaluationInterval() {
         int interval = Math.max(1, StressboundConfig.evaluationIntervalTicks);
         if (StressboundConfig.transmitterPoweredStops || StressboundConfig.receiverPoweredStops) {

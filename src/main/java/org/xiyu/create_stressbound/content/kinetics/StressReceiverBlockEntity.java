@@ -161,6 +161,8 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
     public void applyRuntime(UUID runtimeLinkId, float runtimeSpeed, int runtimeGrantedStress,
                              ReceiverStatus runtimeStatus, LinkAnchor transmitterVisualAnchor) {
         UUID nextLinkId = runtimeLinkId != null ? runtimeLinkId : linkId;
+        UUID previousLinkId = linkId;
+        ReceiverStatus previousStatus = status;
         float previousGeneratedSpeed = getGeneratedSpeed();
         float normalizedSpeed = normalizeRuntimeSpeed(runtimeSpeed);
         int normalizedGrantedStress = normalizedSpeed == 0.0F ? 0 : Math.max(runtimeGrantedStress, 0);
@@ -169,6 +171,8 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
             : runtimeStatus;
         boolean enteredSpeedDeadzone = transmittedSpeed != 0.0F && normalizedSpeed == 0.0F;
         boolean changed = transmittedSpeed != normalizedSpeed || grantedStress != normalizedGrantedStress || status != normalizedStatus;
+        boolean statusChanged = previousStatus != normalizedStatus;
+        boolean linkChanged = !Objects.equals(previousLinkId, nextLinkId);
         linkId = nextLinkId;
         transmittedSpeed = normalizedSpeed;
         grantedStress = normalizedGrantedStress;
@@ -193,6 +197,12 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
             }
             setChanged();
             sendData();
+            if (statusChanged || linkChanged) {
+                StressLinkService.refreshTransmitterVisualsForLink(
+                    ((net.minecraft.server.level.ServerLevel) level).getServer(),
+                    nextLinkId != null ? nextLinkId : previousLinkId
+                );
+            }
         }
     }
 
