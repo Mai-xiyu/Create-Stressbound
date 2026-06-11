@@ -61,7 +61,12 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
     private int linkColor = StressLinkColors.DEFAULT;
 
     public StressReceiverBlockEntity(BlockPos pos, BlockState blockState) {
-        super(StressboundBlockEntities.STRESS_RECEIVER.get(), pos, blockState);
+        this(StressboundBlockEntities.STRESS_RECEIVER.get(), pos, blockState);
+    }
+
+    protected StressReceiverBlockEntity(net.minecraft.world.level.block.entity.BlockEntityType<?> type,
+                                        BlockPos pos, BlockState blockState) {
+        super(type, pos, blockState);
     }
 
     @Override
@@ -89,6 +94,14 @@ public class StressReceiverBlockEntity extends GeneratingKineticBlockEntity impl
             return 0.0F;
         }
         float speed = reverseOutput ? -transmittedSpeed : transmittedSpeed;
+        return convertOutputSpeed(speed);
+    }
+
+    /**
+     * Maps the remote speed onto this block's local rotation convention.
+     * Facing-based receivers convert by FACING; axis-based variants override this.
+     */
+    protected float convertOutputSpeed(float speed) {
         Direction facing = getBlockState().getValue(StressReceiverBlock.FACING);
         return convertToDirection(speed, facing);
     }

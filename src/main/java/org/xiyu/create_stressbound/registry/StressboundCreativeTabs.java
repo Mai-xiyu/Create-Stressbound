@@ -20,6 +20,8 @@ public final class StressboundCreativeTabs {
             .displayItems((parameters, output) -> {
                 output.accept(StressboundItems.STRESS_TRANSMITTER_ITEM.get());
                 output.accept(StressboundItems.STRESS_RECEIVER_ITEM.get());
+                output.accept(StressboundItems.GEARED_STRESS_TRANSMITTER_ITEM.get());
+                output.accept(StressboundItems.GEARED_STRESS_RECEIVER_ITEM.get());
                 output.accept(StressboundItems.KINETIC_BINDER.get());
             })
             .build());

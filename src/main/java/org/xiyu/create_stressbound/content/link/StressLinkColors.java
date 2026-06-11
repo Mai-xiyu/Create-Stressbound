@@ -52,28 +52,30 @@ public final class StressLinkColors {
 
     public static int nextTransmitterColor(Collection<StressLinkRecord> records) {
         Set<Integer> used = new HashSet<>();
-        Set<String> seenTransmitters = new HashSet<>();
         for (StressLinkRecord record : records) {
-            if (seenTransmitters.add(record.transmitter().key()) && isAssigned(record.color())) {
+            if (isAssigned(record.color())) {
                 used.add(normalize(record.color()));
             }
         }
         return nextAvailable(used);
     }
 
-    public static boolean isUsedByOtherTransmitter(Collection<StressLinkRecord> records, LinkAnchor transmitter, int color) {
-        int normalized = normalize(color);
-        Set<String> seenTransmitters = new HashSet<>();
+    /**
+     * Collects every color currently assigned to a record of any transmitter other than {@code transmitter}.
+     * Unlike the previous first-record-per-group heuristic, this stays correct even if a group's
+     * records ever end up with mixed colors.
+     */
+    public static Set<Integer> usedColorsOfOtherTransmitters(Collection<StressLinkRecord> records, LinkAnchor transmitter) {
+        Set<Integer> used = new HashSet<>();
         for (StressLinkRecord record : records) {
-            String key = record.transmitter().key();
-            if (key.equals(transmitter.key()) || !seenTransmitters.add(key)) {
+            if (record.transmitter().key().equals(transmitter.key())) {
                 continue;
             }
-            if (normalize(record.color()) == normalized) {
-                return true;
+            if (isAssigned(record.color())) {
+                used.add(normalize(record.color()));
             }
         }
-        return false;
+        return used;
     }
 
     public static int nextAvailable(Set<Integer> used) {
@@ -119,16 +121,6 @@ public final class StressLinkColors {
         }
 
         return nextAvailable(used);
-    }
-
-    public static boolean isUsedByAnother(Collection<StressLinkRecord> records, StressLinkRecord target, int color) {
-        int normalized = normalize(color);
-        for (StressLinkRecord record : records) {
-            if (!record.id().equals(target.id()) && normalize(record.color()) == normalized) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public static String hex(int color) {

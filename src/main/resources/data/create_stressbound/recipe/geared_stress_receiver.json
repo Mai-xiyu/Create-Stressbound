@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "create_stressbound:stress_receiver"
+    },
+    {
+      "item": "create:cogwheel"
+    }
+  ],
+  "result": {
+    "id": "create_stressbound:geared_stress_receiver",
+    "count": 1
+  }
+}

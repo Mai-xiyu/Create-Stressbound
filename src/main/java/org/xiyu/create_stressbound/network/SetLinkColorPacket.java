@@ -14,7 +14,6 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.xiyu.create_stressbound.CreateStressbound;
 import org.xiyu.create_stressbound.client.gui.TransmitterMenu;
 import org.xiyu.create_stressbound.content.kinetics.StressTransmitterBlockEntity;
-import org.xiyu.create_stressbound.content.link.StressLinkColors;
 import org.xiyu.create_stressbound.content.link.StressLinkService;
 
 public record SetLinkColorPacket(BlockPos transmitterPos, UUID linkId, int color, boolean autoAssign)
@@ -59,9 +58,6 @@ public record SetLinkColorPacket(BlockPos transmitterPos, UUID linkId, int color
                 : StressLinkService.setLinkColor(serverPlayer.server, packet.linkId, packet.color);
 
             switch (result.status()) {
-                case DUPLICATE -> serverPlayer.sendSystemMessage(Component.translatable(
-                    "message.create_stressbound.color.duplicate",
-                    StressLinkColors.hex(packet.color)).withStyle(ChatFormatting.RED));
                 case NOT_FOUND -> serverPlayer.sendSystemMessage(Component.translatable(
                     "message.create_stressbound.color.not_found").withStyle(ChatFormatting.RED));
                 case UPDATED -> {

@@ -17,6 +17,12 @@ public final class StressboundItems {
     public static final DeferredItem<BlockItem> STRESS_RECEIVER_ITEM =
         ITEMS.registerSimpleBlockItem("stress_receiver", StressboundBlocks.STRESS_RECEIVER);
 
+    public static final DeferredItem<BlockItem> GEARED_STRESS_TRANSMITTER_ITEM =
+        ITEMS.registerSimpleBlockItem("geared_stress_transmitter", StressboundBlocks.GEARED_STRESS_TRANSMITTER);
+
+    public static final DeferredItem<BlockItem> GEARED_STRESS_RECEIVER_ITEM =
+        ITEMS.registerSimpleBlockItem("geared_stress_receiver", StressboundBlocks.GEARED_STRESS_RECEIVER);
+
     public static final DeferredItem<Item> KINETIC_BINDER = ITEMS.register("kinetic_binder",
         () -> new KineticBinderItem(new Item.Properties().stacksTo(1)));
 

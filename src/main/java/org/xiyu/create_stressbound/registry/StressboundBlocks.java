@@ -7,6 +7,8 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.xiyu.create_stressbound.CreateStressbound;
+import org.xiyu.create_stressbound.content.kinetics.GearedStressReceiverBlock;
+import org.xiyu.create_stressbound.content.kinetics.GearedStressTransmitterBlock;
 import org.xiyu.create_stressbound.content.kinetics.StressReceiverBlock;
 import org.xiyu.create_stressbound.content.kinetics.StressTransmitterBlock;
 
@@ -26,6 +28,22 @@ public final class StressboundBlocks {
             .mapColor(MapColor.COLOR_ORANGE)
             .noOcclusion()
             .requiresCorrectToolForDrops()));
+
+    public static final DeferredBlock<GearedStressTransmitterBlock> GEARED_STRESS_TRANSMITTER =
+        BLOCKS.register("geared_stress_transmitter",
+            () -> new GearedStressTransmitterBlock(BlockBehaviour.Properties.of()
+                .strength(3.5F)
+                .mapColor(MapColor.TERRACOTTA_YELLOW)
+                .noOcclusion()
+                .requiresCorrectToolForDrops()));
+
+    public static final DeferredBlock<GearedStressReceiverBlock> GEARED_STRESS_RECEIVER =
+        BLOCKS.register("geared_stress_receiver",
+            () -> new GearedStressReceiverBlock(BlockBehaviour.Properties.of()
+                .strength(3.5F)
+                .mapColor(MapColor.COLOR_ORANGE)
+                .noOcclusion()
+                .requiresCorrectToolForDrops()));
 
     private StressboundBlocks() {
     }

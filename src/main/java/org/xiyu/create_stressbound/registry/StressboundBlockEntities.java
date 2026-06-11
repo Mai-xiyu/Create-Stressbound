@@ -6,6 +6,8 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.xiyu.create_stressbound.CreateStressbound;
+import org.xiyu.create_stressbound.content.kinetics.GearedStressReceiverBlockEntity;
+import org.xiyu.create_stressbound.content.kinetics.GearedStressTransmitterBlockEntity;
 import org.xiyu.create_stressbound.content.kinetics.StressReceiverBlockEntity;
 import org.xiyu.create_stressbound.content.kinetics.StressTransmitterBlockEntity;
 
@@ -20,6 +22,14 @@ public final class StressboundBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<StressReceiverBlockEntity>> STRESS_RECEIVER =
         BLOCK_ENTITY_TYPES.register("stress_receiver",
             () -> BlockEntityType.Builder.of(StressReceiverBlockEntity::new, StressboundBlocks.STRESS_RECEIVER.get()).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GearedStressTransmitterBlockEntity>> GEARED_STRESS_TRANSMITTER =
+        BLOCK_ENTITY_TYPES.register("geared_stress_transmitter",
+            () -> BlockEntityType.Builder.of(GearedStressTransmitterBlockEntity::new, StressboundBlocks.GEARED_STRESS_TRANSMITTER.get()).build(null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<GearedStressReceiverBlockEntity>> GEARED_STRESS_RECEIVER =
+        BLOCK_ENTITY_TYPES.register("geared_stress_receiver",
+            () -> BlockEntityType.Builder.of(GearedStressReceiverBlockEntity::new, StressboundBlocks.GEARED_STRESS_RECEIVER.get()).build(null));
 
     private StressboundBlockEntities() {
     }

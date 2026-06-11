@@ -1,6 +1,8 @@
 {
   "block.create_stressbound.stress_transmitter": "Stress Transmitter",
   "block.create_stressbound.stress_receiver": "Stress Receiver",
+  "block.create_stressbound.geared_stress_transmitter": "Geared Stress Transmitter",
+  "block.create_stressbound.geared_stress_receiver": "Geared Stress Receiver",
   "item.create_stressbound.kinetic_binder": "Kinetic Binder",
   "itemGroup.create_stressbound.main": "Create: Stressbound",
   "item.create_stressbound.kinetic_binder.tooltip": "Right-click a transmitter, then right-click a receiver to bind. Shift-right-click a receiver to clear its link; shift-right-click air to clear the stored transmitter.",
@@ -108,7 +110,6 @@
   "gui.create_stressbound.transmitter.palette": "Transmitter Line Color",
   "gui.create_stressbound.transmitter.auto_color": "Cycle Color",
   "gui.create_stressbound.transmitter.auto_color.tooltip": "Assign the next unused transmitter color. All receiver lines from this transmitter use it.",
-  "message.create_stressbound.color.duplicate": "%s is already used by another transmitter.",
   "message.create_stressbound.color.not_found": "That stress link no longer exists.",
   "message.create_stressbound.stress.not_found": "That stress link no longer exists."
 }

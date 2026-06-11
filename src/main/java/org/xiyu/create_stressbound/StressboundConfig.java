@@ -31,11 +31,11 @@ public final class StressboundConfig {
 
     private static final ModConfigSpec.IntValue MAX_LINKS_PER_PLAYER = BUILDER
         .comment("Maximum number of active links a single player may own. | 单个玩家最多可拥有的活动链路数量。")
-        .defineInRange("limits.maxLinksPerPlayer", 64, 1, 4096);
+        .defineInRange("limits.maxLinksPerPlayer", 256, 1, 4096);
 
     private static final ModConfigSpec.IntValue MAX_RECEIVERS_PER_TRANSMITTER = BUILDER
         .comment("Maximum number of receivers attached to one transmitter. | 单个发送端最多可连接的接收端数量。")
-        .defineInRange("limits.maxReceiversPerTransmitter", 8, 1, 256);
+        .defineInRange("limits.maxReceiversPerTransmitter", 64, 1, 1024);
 
     private static final ModConfigSpec.IntValue MAX_STRESS_PER_LINK = BUILDER
         .comment("Hard cap for one receiver's reserved SU budget. Use -1 for unlimited. Also caps the effective defaultRequestedStress. | 单个接收端预留 SU 的硬上限，设为 -1 表示无限制；同时会限制 defaultRequestedStress 的实际生效值。")

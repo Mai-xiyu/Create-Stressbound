@@ -301,11 +301,9 @@ public final class StressLinkService {
         }
 
         StressLinkRecord record = existing.get();
+        // Manual color choice is purely visual; duplicates across transmitters are allowed.
+        // Automatic assignment (assignNextLinkColor / bind) still prefers unused colors.
         int normalized = StressLinkColors.normalize(color);
-        if (StressLinkColors.isUsedByOtherTransmitter(data.all(), record.transmitter(), normalized)) {
-            return ColorUpdateResult.duplicate(record);
-        }
-
         List<StressLinkRecord> updated = setTransmitterGroupColor(data, record.transmitter(), normalized);
         refreshTransmitterGroupVisuals(server, record.transmitter(), updated);
         return ColorUpdateResult.updated(updated.isEmpty() ? record : updated.getFirst());
@@ -319,18 +317,7 @@ public final class StressLinkService {
         }
 
         StressLinkRecord record = existing.get();
-        java.util.Set<Integer> used = new java.util.LinkedHashSet<>();
-        java.util.Set<String> seenTransmitters = new java.util.LinkedHashSet<>();
-        for (StressLinkRecord link : data.all()) {
-            String transmitterKey = link.transmitter().key();
-            if (transmitterKey.equals(record.transmitter().key()) || !seenTransmitters.add(transmitterKey)) {
-                continue;
-            }
-            if (StressLinkColors.isAssigned(link.color())) {
-                used.add(StressLinkColors.normalize(link.color()));
-            }
-        }
-
+        java.util.Set<Integer> used = StressLinkColors.usedColorsOfOtherTransmitters(data.all(), record.transmitter());
         int color = StressLinkColors.nextAvailableAfter(used, record.color());
         List<StressLinkRecord> updated = setTransmitterGroupColor(data, record.transmitter(), color);
         refreshTransmitterGroupVisuals(server, record.transmitter(), updated);
@@ -750,10 +737,6 @@ public final class StressLinkService {
             return new ColorUpdateResult(ColorUpdateStatus.UPDATED, record);
         }
 
-        public static ColorUpdateResult duplicate(StressLinkRecord record) {
-            return new ColorUpdateResult(ColorUpdateStatus.DUPLICATE, record);
-        }
-
         public static ColorUpdateResult notFound() {
             return new ColorUpdateResult(ColorUpdateStatus.NOT_FOUND, null);
         }
@@ -761,7 +744,6 @@ public final class StressLinkService {
 
     public enum ColorUpdateStatus {
         UPDATED,
-        DUPLICATE,
         NOT_FOUND
     }
 

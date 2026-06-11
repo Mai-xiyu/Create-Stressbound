@@ -50,7 +50,12 @@ public class StressTransmitterBlockEntity extends KineticBlockEntity implements 
     private List<LinkedReceiverInfo> linkedReceiverInfos = Collections.emptyList();
 
     public StressTransmitterBlockEntity(BlockPos pos, BlockState blockState) {
-        super(StressboundBlockEntities.STRESS_TRANSMITTER.get(), pos, blockState);
+        this(StressboundBlockEntities.STRESS_TRANSMITTER.get(), pos, blockState);
+    }
+
+    protected StressTransmitterBlockEntity(net.minecraft.world.level.block.entity.BlockEntityType<?> type,
+                                           BlockPos pos, BlockState blockState) {
+        super(type, pos, blockState);
     }
 
     @Override

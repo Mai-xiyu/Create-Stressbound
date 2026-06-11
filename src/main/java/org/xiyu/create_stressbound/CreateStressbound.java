@@ -97,6 +97,14 @@ public final class CreateStressbound {
                 StressboundBlocks.STRESS_RECEIVER.get(),
                 new MovingEndpointMovementBehaviour(EndpointRole.RECEIVER)
             );
+            MovementBehaviour.REGISTRY.register(
+                StressboundBlocks.GEARED_STRESS_TRANSMITTER.get(),
+                new MovingEndpointMovementBehaviour(EndpointRole.TRANSMITTER)
+            );
+            MovementBehaviour.REGISTRY.register(
+                StressboundBlocks.GEARED_STRESS_RECEIVER.get(),
+                new MovingEndpointMovementBehaviour(EndpointRole.RECEIVER)
+            );
         });
     }
 }

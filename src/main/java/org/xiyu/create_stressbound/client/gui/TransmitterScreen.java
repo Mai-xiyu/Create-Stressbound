@@ -36,18 +36,13 @@ public class TransmitterScreen extends AbstractContainerScreen<TransmitterMenu> 
     private static final int AUTO_BUTTON_W = 66;
     private static final int AUTO_BUTTON_H = 16;
 
-    private static final int BG_PANEL = 0xFF_2A2A3C;
-    private static final int HEADER_BG = 0xFF_33334A;
-    private static final int BORDER_AMBER = 0xFFFFD369;
-    private static final int BORDER_DARK = 0xFF_111120;
-    private static final int DIVIDER = 0xFF_44445A;
-    private static final int TITLE_COLOR = 0xFFFFD369;
-    private static final int LABEL_COLOR = 0xFF_BBBBBB;
-    private static final int DIM_COLOR = 0xFF_777777;
-    private static final int VALUE_COLOR = 0xFF_55CCEE;
-    private static final int SELECTED_BG = 0x55_55CCEE;
-    private static final int ROW_BG = 0x33_000000;
-    private static final int ROW_HOVER = 0x44_FFD369;
+    private static final int DIVIDER = StressboundTheme.DIVIDER;
+    private static final int LABEL_COLOR = StressboundTheme.LABEL;
+    private static final int DIM_COLOR = StressboundTheme.DIM;
+    private static final int VALUE_COLOR = StressboundTheme.VALUE;
+    private static final int SELECTED_BG = StressboundTheme.ROW_SELECTED;
+    private static final int ROW_BG = StressboundTheme.ROW_BG;
+    private static final int ROW_HOVER = StressboundTheme.ROW_HOVER;
 
     private final BlockPos blockPos;
     private UUID selectedLinkId;
@@ -83,7 +78,7 @@ public class TransmitterScreen extends AbstractContainerScreen<TransmitterMenu> 
             .pos(leftPos + PANEL_W - PAD - AUTO_BUTTON_W, paletteLabelY() - 4)
             .size(AUTO_BUTTON_W, AUTO_BUTTON_H)
             .tooltip(Tooltip.create(Component.translatable("gui.create_stressbound.transmitter.auto_color.tooltip")))
-            .build();
+            .build(BrassButton::new);
         addRenderableWidget(autoButton);
     }
 
@@ -144,20 +139,8 @@ public class TransmitterScreen extends AbstractContainerScreen<TransmitterMenu> 
     }
 
     private void drawPanel(GuiGraphics g) {
-        int x = leftPos, y = topPos;
-        g.fill(x, y, x + PANEL_W, y + 1, BORDER_AMBER);
-        g.fill(x, y + imageHeight - 1, x + PANEL_W, y + imageHeight, BORDER_AMBER);
-        g.fill(x, y, x + 1, y + imageHeight, BORDER_AMBER);
-        g.fill(x + PANEL_W - 1, y, x + PANEL_W, y + imageHeight, BORDER_AMBER);
-        g.fill(x + 1, y + 1, x + PANEL_W - 1, y + 2, BORDER_DARK);
-        g.fill(x + 1, y + imageHeight - 2, x + PANEL_W - 1, y + imageHeight - 1, BORDER_DARK);
-        g.fill(x + 1, y + 1, x + 2, y + imageHeight - 1, BORDER_DARK);
-        g.fill(x + PANEL_W - 2, y + 1, x + PANEL_W - 1, y + imageHeight - 1, BORDER_DARK);
-        g.fill(x + 2, y + 2, x + PANEL_W - 2, y + imageHeight - 2, BG_PANEL);
-        g.fill(x + 2, y + 2, x + PANEL_W - 2, y + 16, HEADER_BG);
-        g.drawCenteredString(font, Component.translatable("gui.create_stressbound.transmitter.title"),
-            x + PANEL_W / 2, y + 6, TITLE_COLOR);
-        g.fill(x + PAD, y + 18, x + PANEL_W - PAD, y + 19, DIVIDER);
+        StressboundTheme.drawPanel(g, font, leftPos, topPos, PANEL_W, imageHeight,
+            Component.translatable("gui.create_stressbound.transmitter.title"));
     }
 
     private void drawContent(GuiGraphics g, int mx, int my) {
@@ -165,11 +148,11 @@ public class TransmitterScreen extends AbstractContainerScreen<TransmitterMenu> 
         int x = leftPos + PAD;
         int y = topPos + 23;
 
-        g.drawString(font, Component.translatable("gui.create_stressbound.transmitter.links", infos.size()), x, y, LABEL_COLOR);
+        g.drawString(font, Component.translatable("gui.create_stressbound.transmitter.links", infos.size()), x, y, LABEL_COLOR, false);
         if (infos.size() > visibleRows) {
             Component range = Component.translatable("gui.create_stressbound.transmitter.scroll",
                 scrollOffset + 1, Math.min(infos.size(), scrollOffset + visibleRows), infos.size());
-            g.drawString(font, range, leftPos + PANEL_W - PAD - font.width(range), y, DIM_COLOR);
+            g.drawString(font, range, leftPos + PANEL_W - PAD - font.width(range), y, DIM_COLOR, false);
         }
 
         int rowX = x;
@@ -194,13 +177,13 @@ public class TransmitterScreen extends AbstractContainerScreen<TransmitterMenu> 
             Component status = Component.translatable(info.status().translationKey());
             int statusX = leftPos + PANEL_W - PAD - font.width(status) - 4;
             drawTrimmedString(g, pos, rowX + 22, ry + 4, VALUE_COLOR, statusX - rowX - 26);
-            g.drawString(font, status, statusX, ry + 4, statusColor(info.status()));
+            g.drawString(font, status, statusX, ry + 4, statusColor(info.status()), false);
             g.drawString(font, Component.translatable("gui.create_stressbound.transmitter.requested", info.requestedStress()),
-                rowX + 22, ry + 13, DIM_COLOR);
+                rowX + 22, ry + 13, DIM_COLOR, false);
         }
 
         if (infos.isEmpty()) {
-            g.drawCenteredString(font, Component.translatable("gui.create_stressbound.transmitter.no_links"),
+            StressboundTheme.drawCentered(g, font, Component.translatable("gui.create_stressbound.transmitter.no_links"),
                 leftPos + PANEL_W / 2, topPos + ROW_START_Y + ROW_H * Math.max(1, visibleRows / 2), DIM_COLOR);
         }
 
@@ -211,18 +194,18 @@ public class TransmitterScreen extends AbstractContainerScreen<TransmitterMenu> 
 
         int paletteY = paletteLabelY();
         g.drawString(font, Component.translatable("gui.create_stressbound.transmitter.palette"),
-            x, paletteY, LABEL_COLOR);
+            x, paletteY, LABEL_COLOR, false);
         drawPalette(g);
     }
 
     private void drawStressControls(GuiGraphics g, StressTransmitterBlockEntity.LinkedReceiverInfo selected) {
         int y = stressLabelY();
         g.drawString(font, Component.translatable("gui.create_stressbound.transmitter.stress"),
-            leftPos + PAD, y, LABEL_COLOR);
+            leftPos + PAD, y, LABEL_COLOR, false);
         if (selected != null) {
             Component value = Component.translatable(
                 "gui.create_stressbound.transmitter.stress.value", selected.requestedStress());
-            g.drawString(font, value, leftPos + PANEL_W - PAD - font.width(value), y, VALUE_COLOR);
+            g.drawString(font, value, leftPos + PANEL_W - PAD - font.width(value), y, VALUE_COLOR, false);
         }
     }
 
@@ -242,7 +225,8 @@ public class TransmitterScreen extends AbstractContainerScreen<TransmitterMenu> 
     }
 
     private void drawColorSwatch(GuiGraphics g, int x, int y, int color, boolean selected) {
-        g.fill(x - 1, y - 1, x + SWATCH + 1, y + SWATCH + 1, selected ? BORDER_AMBER : BORDER_DARK);
+        g.fill(x - 1, y - 1, x + SWATCH + 1, y + SWATCH + 1,
+            selected ? StressboundTheme.SWATCH_SELECTED : StressboundTheme.SWATCH_BORDER);
         g.fill(x, y, x + SWATCH, y + SWATCH, 0xFF000000 | StressLinkColors.normalize(color));
         g.fill(x, y, x + SWATCH, y + 1, 0x77_FFFFFF);
         g.fill(x, y + SWATCH - 1, x + SWATCH, y + SWATCH, 0x66_000000);
@@ -260,7 +244,7 @@ public class TransmitterScreen extends AbstractContainerScreen<TransmitterMenu> 
                 : font.plainSubstrByWidth(display, maxWidth - ellipsisWidth) + "...";
         }
         if (!display.isEmpty()) {
-            g.drawString(font, display, x, y, color);
+            g.drawString(font, display, x, y, color, false);
         }
     }
 
@@ -341,7 +325,7 @@ public class TransmitterScreen extends AbstractContainerScreen<TransmitterMenu> 
             .size(STRESS_BUTTON_W, STRESS_BUTTON_H)
             .tooltip(Tooltip.create(Component.translatable(
                 "gui.create_stressbound.transmitter.stress.tooltip", signed(delta))))
-            .build();
+            .build(BrassButton::new);
         stressButtons.add(button);
         addRenderableWidget(button);
     }
@@ -401,10 +385,10 @@ public class TransmitterScreen extends AbstractContainerScreen<TransmitterMenu> 
 
     private static int statusColor(org.xiyu.create_stressbound.content.link.ReceiverStatus status) {
         return switch (status) {
-            case ACTIVE -> 0xFF_55FF77;
-            case OVERLOADED, INVALID_RECEIVER, INVALID_TRANSMITTER, REMOTE_LOOP -> 0xFF_FF5555;
-            case RECEIVER_DISABLED, TRANSMITTER_DISABLED -> 0xFF_FFAA33;
-            default -> 0xFF_999999;
+            case ACTIVE -> StressboundTheme.GOOD;
+            case OVERLOADED, INVALID_RECEIVER, INVALID_TRANSMITTER, REMOTE_LOOP -> StressboundTheme.ERROR;
+            case RECEIVER_DISABLED, TRANSMITTER_DISABLED -> StressboundTheme.WARN;
+            default -> StressboundTheme.DIM;
         };
     }
 }

@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "create_stressbound:stress_transmitter",
+    "create_stressbound:stress_receiver",
+    "create_stressbound:geared_stress_transmitter",
+    "create_stressbound:geared_stress_receiver"
+  ]
+}

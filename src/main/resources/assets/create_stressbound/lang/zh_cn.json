@@ -1,6 +1,8 @@
 {
   "block.create_stressbound.stress_transmitter": "应力发送端",
   "block.create_stressbound.stress_receiver": "应力接收端",
+  "block.create_stressbound.geared_stress_transmitter": "齿轮应力发送端",
+  "block.create_stressbound.geared_stress_receiver": "齿轮应力接收端",
   "item.create_stressbound.kinetic_binder": "动力绑定器",
   "itemGroup.create_stressbound.main": "Create：应力绑定",
   "item.create_stressbound.kinetic_binder.tooltip": "右击应力发送端记录目标，再右击应力接收端完成绑定。潜行右击接收端可清除链路；潜行右击空气可清除已记录的发送端。",
@@ -107,7 +109,6 @@
   "gui.create_stressbound.transmitter.palette": "发送端线色",
   "gui.create_stressbound.transmitter.auto_color": "切换线色",
   "gui.create_stressbound.transmitter.auto_color.tooltip": "分配下一个未使用的发送端颜色；该发送端连出的所有线都会使用它。",
-  "message.create_stressbound.color.duplicate": "%s 已被其他发送端使用。",
   "message.create_stressbound.color.not_found": "这条应力链路已经不存在。",
   "message.create_stressbound.stress.not_found": "这条应力链路已经不存在。"
 }

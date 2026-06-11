@@ -2,6 +2,7 @@ package org.xiyu.create_stressbound.client;
 
 import com.simibubi.create.content.kinetics.base.ShaftRenderer;
 import com.simibubi.create.content.kinetics.base.ShaftVisual;
+import com.simibubi.create.content.kinetics.simpleRelays.encased.EncasedCogVisual;
 import dev.engine_room.flywheel.lib.visualization.SimpleBlockEntityVisualizer;
 import net.createmod.ponder.foundation.PonderIndex;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
@@ -32,6 +33,8 @@ public final class StressboundClient {
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(StressboundBlockEntities.STRESS_TRANSMITTER.get(), ShaftRenderer::new);
         event.registerBlockEntityRenderer(StressboundBlockEntities.STRESS_RECEIVER.get(), ShaftRenderer::new);
+        event.registerBlockEntityRenderer(StressboundBlockEntities.GEARED_STRESS_TRANSMITTER.get(), GearedStressLinkRenderer::new);
+        event.registerBlockEntityRenderer(StressboundBlockEntities.GEARED_STRESS_RECEIVER.get(), GearedStressLinkRenderer::new);
     }
 
     public static void registerMenuScreens(RegisterMenuScreensEvent event) {
@@ -45,6 +48,12 @@ public final class StressboundClient {
             .apply();
         SimpleBlockEntityVisualizer.builder(StressboundBlockEntities.STRESS_RECEIVER.get())
             .factory(ShaftVisual::new)
+            .apply();
+        SimpleBlockEntityVisualizer.builder(StressboundBlockEntities.GEARED_STRESS_TRANSMITTER.get())
+            .factory(EncasedCogVisual::small)
+            .apply();
+        SimpleBlockEntityVisualizer.builder(StressboundBlockEntities.GEARED_STRESS_RECEIVER.get())
+            .factory(EncasedCogVisual::small)
             .apply();
     }
 }
