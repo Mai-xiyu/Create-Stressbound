@@ -31,6 +31,7 @@ The bundled tumbler template demonstrates analog redstone throttling as a feedba
 ## Features
 
 - Adds `Stress Transmitter`, `Stress Receiver`, and `Kinetic Binder`.
+- Adds `Geared Stress Transmitter` and `Geared Stress Receiver`: encased-cogwheel-style endpoints that mesh with cogwheels on all four perpendicular faces at once, with wrench-toggleable shaft stubs on both axis ends. Craft them by combining the base block with a cogwheel.
 - Provides a dedicated creative tab: `Create: Stressbound`.
 - Transfers rotational speed through saved stress links without requiring a physical shaft line.
 - Reserves configurable SU budgets per receiver to avoid free stress duplication.
